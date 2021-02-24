@@ -1,0 +1,166 @@
+diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
+index 9ce7fe9f..717ea092 100644
+--- a/images/linux/scripts/installers/configure-environment.sh
++++ b/images/linux/scripts/installers/configure-environment.sh
+@@ -9,9 +9,9 @@ mkdir -p /etc/skel/.config/configstore
+ echo 'export XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/skel/.bashrc
+ 
+ # Change waagent entries to use /mnt for swapfile
+-sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
+-sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
+-sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
++#sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
++#sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
++#sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
+ 
+ # Add localhost alias to ::1 IPv6
+ sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
+@@ -28,4 +28,4 @@ echo 'vm.max_map_count=262144' | tee -a /etc/sysctl.conf
+ 
+ # Create symlink for tests running
+ chmod +x $HELPER_SCRIPTS/invoke-tests.sh
+-ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
+\ No newline at end of file
++ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
+diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
+index 5acae9c2..affc62c7 100644
+--- a/images/linux/scripts/installers/dotnetcore-sdk.sh
++++ b/images/linux/scripts/installers/dotnetcore-sdk.sh
+@@ -46,8 +46,8 @@ for version in ${DOTNET_VERSIONS[@]}; do
+     release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
+     download_with_retries "${release_url}" "." "${version}.json"
+     releases=$(cat "./${version}.json")
+-    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[]' | jq '.sdk.version'))
+-    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[]' | jq '.sdks[]?' | jq '.version'))
++    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[]' | jq 'select (."release-date" >= "2021-01-01")' | jq '.sdk.version'))
++    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[]' | jq 'select (."release-date" >= "2021-01-01")' | jq '.sdks[]?' | jq '.version'))
+     rm ./${version}.json
+ done
+ 
+@@ -92,4 +92,4 @@ setEtcEnvironmentVariable DOTNET_MULTILEVEL_LOOKUP 0
+ prependEtcEnvironmentPath /home/runner/.dotnet/tools
+ echo 'export PATH="$PATH:$HOME/.dotnet/tools"' | tee -a /etc/skel/.bashrc
+ 
+-invoke_tests "DotnetSDK"
+\ No newline at end of file
++invoke_tests "DotnetSDK"
+diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
+index 00d8157f..2666b721 100644
+--- a/images/linux/scripts/installers/homebrew.sh
++++ b/images/linux/scripts/installers/homebrew.sh
+@@ -25,4 +25,4 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
+ echo "Validate the installation reloading /etc/environment"
+ reloadEtcEnvironment
+ 
+-invoke_tests "Tools" "Homebrew"
++#invoke_tests "Tools" "Homebrew"
+diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
+index 2b52f1c1..e608f8e7 100644
+--- a/images/linux/ubuntu2004.json
++++ b/images/linux/ubuntu2004.json
+@@ -29,27 +29,8 @@
+     ],
+     "builders": [
+         {
+-            "type": "azure-arm",
+-            "client_id": "{{user `client_id`}}",
+-            "client_secret": "{{user `client_secret`}}",
+-            "subscription_id": "{{user `subscription_id`}}",
+-            "tenant_id": "{{user `tenant_id`}}",
+-            "location": "{{user `location`}}",
+-            "vm_size": "{{user `vm_size`}}",
+-            "resource_group_name": "{{user `resource_group`}}",
+-            "storage_account": "{{user `storage_account`}}",
+-            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
+-            "capture_container_name": "images",
+-            "capture_name_prefix": "{{user `capture_name_prefix`}}",
+-            "virtual_network_name": "{{user `virtual_network_name`}}",
+-            "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
+-            "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
+-            "private_virtual_network_with_public_ip": "{{user `private_virtual_network_with_public_ip`}}",
+-            "os_type": "Linux",
+-            "image_publisher": "canonical",
+-            "image_offer": "0001-com-ubuntu-server-focal",
+-            "image_sku": "20_04-lts",
+-            "os_disk_size_gb": "86"
++          "type": "lxd",
++          "image": "ubuntu:focal"
+         }
+     ],
+     "provisioners": [
+@@ -92,12 +73,12 @@
+         {
+             "type": "file",
+             "source": "{{template_dir}}/scripts/helpers",
+-            "destination": "{{user `helper_script_folder`}}"
++            "destination": "{{user `image_folder`}}"
+         },
+         {
+             "type": "file",
+             "source": "{{template_dir}}/scripts/installers",
+-            "destination": "{{user `installer_script_folder`}}"
++            "destination": "{{user `image_folder`}}"
+         },
+         {
+             "type": "file",
+@@ -277,6 +258,17 @@
+             ],
+             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+         },
++        {
++            "type": "shell",
++            "environment_vars": [
++                "HELPER_SCRIPTS={{user `helper_script_folder`}}",
++                "DEBIAN_FRONTEND=noninteractive",
++                "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
++            ],
++            "inline": [
++                "sudo chmod 777 ${INSTALLER_SCRIPT_FOLDER}/toolset.json"
++            ]
++        },
+         {
+             "type": "shell",
+             "scripts": [
+@@ -287,7 +279,7 @@
+                 "DEBIAN_FRONTEND=noninteractive",
+                 "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
+             ],
+-            "execute_command": "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
++            "execute_command": "sudo -u ubuntu /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+         },
+         {
+             "type": "shell",
+@@ -311,23 +303,6 @@
+             "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
+             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+         },
+-        {
+-            "type": "shell",
+-            "inline": [
+-                "pwsh -File {{user `image_folder`}}/SoftwareReport/SoftwareReport.Generator.ps1 -OutputDirectory {{user `image_folder`}}",
+-                "pwsh -File {{user `image_folder`}}/tests/RunAll-Tests.ps1 -OutputDirectory {{user `image_folder`}}"
+-            ],
+-            "environment_vars": [
+-                "IMAGE_VERSION={{user `image_version`}}",
+-                "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
+-            ]
+-        },
+-        {
+-            "type": "file",
+-            "source": "{{user `image_folder`}}/Ubuntu-Readme.md",
+-            "destination": "{{template_dir}}/Ubuntu2004-README.md",
+-            "direction": "download"
+-        },
+         {
+             "type": "shell",
+             "scripts":[
+@@ -365,8 +340,7 @@
+         {
+             "type": "shell",
+             "inline": [
+-                "sleep 30",
+-                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
++                "sleep 30"
+             ],
+             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+         }

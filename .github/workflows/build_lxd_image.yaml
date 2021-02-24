@@ -1,0 +1,71 @@
+name: build LXD image
+on:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: whywaita/setup-lxd@v1
+      - name: setup-packer
+        run: |
+          sudo apt-get install -y wget unzip
+          sudo curl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip
+          sudo unzip packer_1.7.0_linux_amd64.zip
+          sudo mv ./packer /tmp/packer
+      - uses: actions/checkout@v2
+      - name: Delete unused file
+        run: |
+          sudo rm -rf /opt/hostedtoolcache
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/*
+          sudo rm -rf /var/lib/docker/*
+          # ignore /usr/share/dpkg
+          ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
+
+
+      - name: Clone actions/virtual-environments
+        id: clone
+        run: |
+          git clone https://github.com/actions/virtual-environments
+          cd virtual-environments
+          export DIR=$(pwd)
+          echo "::set-output name=dir::${DIR}"
+      - name: Apply LXD patch
+        run: |
+          cp ../lxd.patch .
+          patch -p1 < lxd.patch
+        working-directory: ${{ steps.clone.outputs.dir }}
+      - name: packer validate packer.json
+        run: |
+          /tmp/packer validate -syntax-only images/linux/ubuntu2004.json
+        working-directory: ${{ steps.clone.outputs.dir }}
+      - name: packer build packer.json
+        run: |
+          /tmp/packer build -color=false -on-error=abort images/linux/ubuntu2004.json
+        working-directory: ${{ steps.clone.outputs.dir }}
+        env:
+          PACKER_LOG: 1
+
+
+#       - name: Export image
+#         run: |
+#           mkdir -p _output
+#           lxc image export packer-lxd ./_output
+#         working-directory: ${{ steps.clone.outputs.dir }}
+#       - name: Upload artifact
+#         uses: actions/upload-artifact@v2
+#         with:
+#           path: _output/*.tar.gz
+#         working-directory: ${{ steps.clone.outputs.dir }}
+# 
+# 
+#       - name: Notify status
+#         uses: lazy-actions/slatify@master
+#         if: failure()
+#         with:
+#           job_name: '*nightly build virtual-environments-lxd*'
+#           type: ${{ job.status }}
+#           icon_emoji: ":octocat:"
+#           url: ${{ secrets.SLACK_WEBHOOK_URL }}
+#           token: ${{ secrets.GITHUB_TOKEN }}
