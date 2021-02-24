@@ -31,8 +31,10 @@ jobs:
         run: |
           git clone https://github.com/actions/virtual-environments
           cd virtual-environments
-          export DIR=$(pwd)
-          echo "::set-output name=dir::${DIR}"
+
+          echo "::set-output name=dir::$(pwd)"
+          echo "::set-output name=virtual-environments-hash::$(git rev-parse --short HEAD)"
+          echo "::set-output name=build-date::$(date '+%Y%m%d')"
       - name: Apply LXD patch
         run: |
           cp ../lxd.patch .
@@ -58,6 +60,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
+          name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
           path: ${{ steps.clone.outputs.dir }}/_output/*.tar.gz
 
 
