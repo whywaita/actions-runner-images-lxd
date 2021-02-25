@@ -62,6 +62,7 @@ jobs:
         with:
           name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
           path: ${{ steps.clone.outputs.dir }}/_output/*.tar.gz
+          retention-days: 5
 
 
       - name: Notify status
