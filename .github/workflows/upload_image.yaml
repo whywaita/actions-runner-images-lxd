@@ -86,3 +86,4 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: mxschmitt/action-tmate@v3
+        if: always()
