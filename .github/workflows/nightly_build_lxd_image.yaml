@@ -57,11 +57,15 @@ jobs:
           mkdir -p _output
           lxc image export packer-lxd ./_output
         working-directory: ${{ steps.clone.outputs.dir }}
+      - name: Compress image
+        run: |
+          zip ./_output/artifact.zip ./_output/*.tar.gz
+        working-directory: ${{ steps.clone.outputs.dir }}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
           name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
-          path: ${{ steps.clone.outputs.dir }}/_output/*.tar.gz
+          path: ${{ steps.clone.outputs.dir }}/_output/*.zip
           retention-days: 5
 
 
