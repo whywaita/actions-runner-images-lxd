@@ -59,7 +59,7 @@ jobs:
         working-directory: ${{ steps.clone.outputs.dir }}
       - name: Compress image
         run: |
-          zip ./_output/artifact.zip ./_output/*.tar.gz
+          zip -m ./_output/artifact.zip ./_output/*.tar.gz
         working-directory: ${{ steps.clone.outputs.dir }}
       - name: Upload artifact
         uses: actions/upload-artifact@v2
