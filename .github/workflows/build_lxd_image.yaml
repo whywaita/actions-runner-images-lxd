@@ -31,6 +31,8 @@ jobs:
           cd virtual-environments
           export DIR=$(pwd)
           echo "::set-output name=dir::${DIR}"
+          echo "::set-output name=virtual-environments-hash::$(git rev-parse --short HEAD)"
+          echo "::set-output name=build-date::$(date '+%Y%m%d')"
       - name: Apply LXD patch
         run: |
           cp ../lxd.patch .
@@ -42,7 +44,7 @@ jobs:
         working-directory: ${{ steps.clone.outputs.dir }}
       - name: packer build packer.json
         run: |
-          /tmp/packer build -color=false -on-error=abort images/linux/ubuntu2004.json
+          /tmp/packer build -on-error=abort images/linux/ubuntu2004.json
         working-directory: ${{ steps.clone.outputs.dir }}
         env:
           PACKER_LOG: 1
