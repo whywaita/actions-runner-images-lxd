@@ -48,20 +48,20 @@ jobs:
           PACKER_LOG: 1
 
       - name: Export image
-       run: |
-        mkdir -p _output
-        lxc image export packer-lxd ./_output
-       working-directory: ${{ steps.clone.outputs.dir }}
+        run: |
+          mkdir -p _output
+          lxc image export packer-lxd ./_output
+        working-directory: ${{ steps.clone.outputs.dir }}
       - name: Compress image
-       run: |
-        zip -m ./_output/artifact.zip ./_output/*.tar.gz
-       working-directory: ${{ steps.clone.outputs.dir }}
+        run: |
+          zip -m ./_output/artifact.zip ./_output/*.tar.gz
+        working-directory: ${{ steps.clone.outputs.dir }}
       - name: Upload artifact
-       uses: actions/upload-artifact@v2
-       with:
-        name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
-        path: ${{ steps.clone.outputs.dir }}/_output/*.zip
-        retention-days: 1
+        uses: actions/upload-artifact@v2
+        with:
+          name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
+          path: ${{ steps.clone.outputs.dir }}/_output/*.zip
+          retention-days: 1
 
 # 
 # 
