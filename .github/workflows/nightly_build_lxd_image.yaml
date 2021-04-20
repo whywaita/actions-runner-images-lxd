@@ -78,3 +78,7 @@ jobs:
           icon_emoji: ":octocat:"
           url: ${{ secrets.SLACK_WEBHOOK_URL }}
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run tmate
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
