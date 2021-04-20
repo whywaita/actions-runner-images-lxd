@@ -1,9 +1,9 @@
 diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
-index 9ce7fe9f..717ea092 100644
+index d3c99fcf..fe74e829 100644
 --- a/images/linux/scripts/installers/configure-environment.sh
 +++ b/images/linux/scripts/installers/configure-environment.sh
-@@ -9,9 +9,9 @@ mkdir -p /etc/skel/.config/configstore
- echo 'export XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/skel/.bashrc
+@@ -12,9 +12,9 @@ mkdir -p /etc/skel/.config/configstore
+ echo 'XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/environment
  
  # Change waagent entries to use /mnt for swapfile
 -sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
@@ -15,18 +15,11 @@ index 9ce7fe9f..717ea092 100644
  
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
-@@ -28,4 +28,4 @@ echo 'vm.max_map_count=262144' | tee -a /etc/sysctl.conf
- 
- # Create symlink for tests running
- chmod +x $HELPER_SCRIPTS/invoke-tests.sh
--ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
-\ No newline at end of file
-+ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
 diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
-index 5acae9c2..affc62c7 100644
+index b2b6d0e6..5b397e48 100644
 --- a/images/linux/scripts/installers/dotnetcore-sdk.sh
 +++ b/images/linux/scripts/installers/dotnetcore-sdk.sh
-@@ -46,8 +46,8 @@ for version in ${DOTNET_VERSIONS[@]}; do
+@@ -31,8 +31,8 @@ for version in ${DOTNET_VERSIONS[@]}; do
      release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
      download_with_retries "${release_url}" "." "${version}.json"
      releases=$(cat "./${version}.json")
@@ -37,25 +30,18 @@ index 5acae9c2..affc62c7 100644
      rm ./${version}.json
  done
  
-@@ -92,4 +92,4 @@ setEtcEnvironmentVariable DOTNET_MULTILEVEL_LOOKUP 0
- prependEtcEnvironmentPath /home/runner/.dotnet/tools
- echo 'export PATH="$PATH:$HOME/.dotnet/tools"' | tee -a /etc/skel/.bashrc
- 
--invoke_tests "DotnetSDK"
-\ No newline at end of file
-+invoke_tests "DotnetSDK"
 diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
-index 00d8157f..2666b721 100644
+index 3c325b1b..63239f3f 100644
 --- a/images/linux/scripts/installers/homebrew.sh
 +++ b/images/linux/scripts/installers/homebrew.sh
-@@ -25,4 +25,4 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
- echo "Validate the installation reloading /etc/environment"
- reloadEtcEnvironment
+@@ -37,4 +37,4 @@ for package in $brew_packages; do
+     fi
+ done
  
 -invoke_tests "Tools" "Homebrew"
 +#invoke_tests "Tools" "Homebrew"
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 2b52f1c1..e608f8e7 100644
+index 7c0ca2b5..650b7ccd 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -29,27 +29,8 @@
@@ -103,7 +89,16 @@ index 2b52f1c1..e608f8e7 100644
          },
          {
              "type": "file",
-@@ -277,6 +258,17 @@
+@@ -251,7 +232,7 @@
+                 "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}",
+                 "DEBIAN_FRONTEND=noninteractive"
+             ],
+-            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++            "execute_command": "sudo -u ubuntu sh -c '{{ .Vars }} {{ .Path }}'"
+         },
+         {
+             "type": "shell",
+@@ -276,6 +257,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -121,7 +116,7 @@ index 2b52f1c1..e608f8e7 100644
          {
              "type": "shell",
              "scripts": [
-@@ -287,7 +279,7 @@
+@@ -286,7 +278,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -130,7 +125,7 @@ index 2b52f1c1..e608f8e7 100644
          },
          {
              "type": "shell",
-@@ -311,23 +303,6 @@
+@@ -310,23 +302,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -154,7 +149,7 @@ index 2b52f1c1..e608f8e7 100644
          {
              "type": "shell",
              "scripts":[
-@@ -365,8 +340,7 @@
+@@ -364,8 +339,7 @@
          {
              "type": "shell",
              "inline": [
