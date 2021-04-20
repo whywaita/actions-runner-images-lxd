@@ -15,6 +15,13 @@ index d3c99fcf..fe74e829 100644
  
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
+@@ -31,4 +31,4 @@ echo 'vm.max_map_count=262144' | tee -a /etc/sysctl.conf
+ 
+ # Create symlink for tests running
+ chmod +x $HELPER_SCRIPTS/invoke-tests.sh
+-ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
+\ No newline at end of file
++ln -s $HELPER_SCRIPTS/invoke-tests.sh /usr/local/bin/invoke_tests
 diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
 index b2b6d0e6..5b397e48 100644
 --- a/images/linux/scripts/installers/dotnetcore-sdk.sh
@@ -31,17 +38,25 @@ index b2b6d0e6..5b397e48 100644
  done
  
 diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
-index 3c325b1b..63239f3f 100644
+index 3c325b1b..2a8ebf72 100644
 --- a/images/linux/scripts/installers/homebrew.sh
 +++ b/images/linux/scripts/installers/homebrew.sh
-@@ -37,4 +37,4 @@ for package in $brew_packages; do
+@@ -30,11 +30,11 @@ reloadEtcEnvironment
+ brew_packages=$(get_toolset_value .brew[].name)
+ for package in $brew_packages; do
+     echo "Install $package"
+-    brew install $package
++    sudo -u ubuntu brew install $package
+     # create symlinks for zstd in /usr/local/bin
+     if [[ $package == "zstd" ]]; then
+         find $(brew --prefix)/bin -name *zstd* -exec sudo sh -c 'ln -s {} /usr/local/bin/$(basename {})' ';'
      fi
  done
  
 -invoke_tests "Tools" "Homebrew"
 +#invoke_tests "Tools" "Homebrew"
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 7c0ca2b5..650b7ccd 100644
+index 7c0ca2b5..9ffb2f08 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -29,27 +29,8 @@
@@ -89,15 +104,6 @@ index 7c0ca2b5..650b7ccd 100644
          },
          {
              "type": "file",
-@@ -251,7 +232,7 @@
-                 "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}",
-                 "DEBIAN_FRONTEND=noninteractive"
-             ],
--            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+            "execute_command": "sudo -u ubuntu sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-         {
-             "type": "shell",
 @@ -276,6 +257,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
