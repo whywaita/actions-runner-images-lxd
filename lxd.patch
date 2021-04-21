@@ -45,18 +45,10 @@ index b2b6d0e6..5b397e48 100644
 \ No newline at end of file
 +invoke_tests "DotnetSDK"
 diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
-index 3c325b1b..1dcf7958 100644
+index 3c325b1b..63239f3f 100644
 --- a/images/linux/scripts/installers/homebrew.sh
 +++ b/images/linux/scripts/installers/homebrew.sh
-@@ -30,11 +30,11 @@ reloadEtcEnvironment
- brew_packages=$(get_toolset_value .brew[].name)
- for package in $brew_packages; do
-     echo "Install $package"
--    brew install $package
-+    sudo -u ubuntu -E brew install $package
-     # create symlinks for zstd in /usr/local/bin
-     if [[ $package == "zstd" ]]; then
-         find $(brew --prefix)/bin -name *zstd* -exec sudo sh -c 'ln -s {} /usr/local/bin/$(basename {})' ';'
+@@ -37,4 +37,4 @@ for package in $brew_packages; do
      fi
  done
  
