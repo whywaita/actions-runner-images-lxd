@@ -65,6 +65,10 @@ jobs:
           path: ${{ steps.clone.outputs.dir }}/_output/*.zip
           retention-days: 1
 
+      - name: Run tmate
+        if: failure()
+        uses: mxschmitt/action-tmate@v3
+
 # 
 # 
 #       - name: Notify status
