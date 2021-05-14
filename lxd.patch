@@ -58,10 +58,10 @@ index 3c325b1b..de9a4667 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index f6e241d1..b918c064 100644
+index 0d70fc4d..199bfdc7 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -30,28 +30,8 @@
+@@ -31,29 +31,8 @@
      ],
      "builders": [
          {
@@ -74,6 +74,7 @@ index f6e241d1..b918c064 100644
 -            "vm_size": "{{user `vm_size`}}",
 -            "resource_group_name": "{{user `resource_group`}}",
 -            "storage_account": "{{user `storage_account`}}",
+-            "build_resource_group_name": "{{user `build_resource_group_name`}}",
 -            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
 -            "capture_container_name": "images",
 -            "capture_name_prefix": "{{user `capture_name_prefix`}}",
@@ -92,7 +93,7 @@ index f6e241d1..b918c064 100644
          }
      ],
      "provisioners": [
-@@ -94,12 +74,12 @@
+@@ -96,12 +75,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -107,7 +108,7 @@ index f6e241d1..b918c064 100644
          },
          {
              "type": "file",
-@@ -278,6 +258,17 @@
+@@ -280,6 +259,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -125,7 +126,7 @@ index f6e241d1..b918c064 100644
          {
              "type": "shell",
              "scripts": [
-@@ -288,7 +279,7 @@
+@@ -290,7 +280,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -134,7 +135,7 @@ index f6e241d1..b918c064 100644
          },
          {
              "type": "shell",
-@@ -312,23 +303,6 @@
+@@ -314,23 +304,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -158,7 +159,7 @@ index f6e241d1..b918c064 100644
          {
              "type": "shell",
              "scripts":[
-@@ -366,8 +340,7 @@
+@@ -368,8 +341,7 @@
          {
              "type": "shell",
              "inline": [
