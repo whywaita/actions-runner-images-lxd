@@ -71,7 +71,7 @@ jobs:
 
       - name: Notify status
         uses: lazy-actions/slatify@master
-        if: failure()
+        if: always()
         with:
           job_name: '*nightly build virtual-environments-lxd*'
           type: ${{ job.status }}
