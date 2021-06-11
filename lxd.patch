@@ -51,10 +51,42 @@ index 3c325b1b..de9a4667 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 0d70fc4d..574dabce 100644
+index 0d70fc4d..f59d3190 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -96,12 +96,12 @@
+@@ -31,29 +31,8 @@
+     ],
+     "builders": [
+         {
+-            "type": "azure-arm",
+-            "client_id": "{{user `client_id`}}",
+-            "client_secret": "{{user `client_secret`}}",
+-            "subscription_id": "{{user `subscription_id`}}",
+-            "tenant_id": "{{user `tenant_id`}}",
+-            "location": "{{user `location`}}",
+-            "vm_size": "{{user `vm_size`}}",
+-            "resource_group_name": "{{user `resource_group`}}",
+-            "storage_account": "{{user `storage_account`}}",
+-            "build_resource_group_name": "{{user `build_resource_group_name`}}",
+-            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
+-            "capture_container_name": "images",
+-            "capture_name_prefix": "{{user `capture_name_prefix`}}",
+-            "virtual_network_name": "{{user `virtual_network_name`}}",
+-            "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
+-            "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
+-            "private_virtual_network_with_public_ip": "{{user `private_virtual_network_with_public_ip`}}",
+-            "allowed_inbound_ip_addresses": "{{user `allowed_inbound_ip_addresses`}}",
+-            "os_type": "Linux",
+-            "image_publisher": "canonical",
+-            "image_offer": "0001-com-ubuntu-server-focal",
+-            "image_sku": "20_04-lts",
+-            "os_disk_size_gb": "86"
++          "type": "lxd",
++          "image": "ubuntu:focal"
+         }
+     ],
+     "provisioners": [
+@@ -96,12 +75,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -69,7 +101,7 @@ index 0d70fc4d..574dabce 100644
          },
          {
              "type": "file",
-@@ -280,6 +280,17 @@
+@@ -280,6 +259,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -87,7 +119,7 @@ index 0d70fc4d..574dabce 100644
          {
              "type": "shell",
              "scripts": [
-@@ -290,7 +301,7 @@
+@@ -290,7 +280,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -96,7 +128,7 @@ index 0d70fc4d..574dabce 100644
          },
          {
              "type": "shell",
-@@ -314,23 +325,6 @@
+@@ -314,23 +304,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -120,7 +152,7 @@ index 0d70fc4d..574dabce 100644
          {
              "type": "shell",
              "scripts":[
-@@ -368,8 +362,7 @@
+@@ -368,8 +341,7 @@
          {
              "type": "shell",
              "inline": [
