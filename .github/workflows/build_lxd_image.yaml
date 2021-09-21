@@ -19,8 +19,8 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/*
-          # ignore /var/snap/lxd
-          ls /var/**/** | grep ":" | tr -d ":" | grep -v "/var/snap/lxd" |  xargs -I%% sudo rm -rf %%
+          # ignore /var/snap/lxd, /var/run
+          sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/snap/lxd|/var/run" |  xargs -I%% sudo rm -rf %%
           # ignore /usr/share/dpkg
           ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
 
