@@ -19,7 +19,8 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/*
-          sudo rm -rf /var/lib/docker/*
+          # ignore /var/run, snap lxd packages
+          sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd" |  xargs -I%% sudo rm -rf %%
           # ignore /usr/share/dpkg
           ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
 
