@@ -19,8 +19,8 @@ jobs:
           sudo rm -rf /opt/hostedtoolcache
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/*
-          sudo rm -rf /var/lib/docker/*
-          sudo rm -rf /var/*
+          # ignore /var/snap/lxd
+          ls /var/ | grep -v lxd |  xargs -I%% sudo rm -rf /var/%%
           # ignore /usr/share/dpkg
           ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
 
