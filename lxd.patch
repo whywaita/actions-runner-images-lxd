@@ -38,7 +38,7 @@ index bcbcde99..27bcd157 100644
  done
  
 diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
-index 3c325b1b..de9a4667 100644
+index cb81167e..135f7c99 100644
 --- a/images/linux/scripts/installers/homebrew.sh
 +++ b/images/linux/scripts/installers/homebrew.sh
 @@ -26,6 +26,8 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
@@ -51,7 +51,7 @@ index 3c325b1b..de9a4667 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 0d70fc4d..f59d3190 100644
+index d88e3779..5efc91db 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -31,29 +31,8 @@
@@ -101,7 +101,7 @@ index 0d70fc4d..f59d3190 100644
          },
          {
              "type": "file",
-@@ -280,6 +259,17 @@
+@@ -283,6 +262,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -119,7 +119,7 @@ index 0d70fc4d..f59d3190 100644
          {
              "type": "shell",
              "scripts": [
-@@ -290,7 +280,7 @@
+@@ -293,7 +283,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -128,8 +128,8 @@ index 0d70fc4d..f59d3190 100644
          },
          {
              "type": "shell",
-@@ -314,23 +304,6 @@
-             "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
+@@ -322,23 +312,6 @@
+             "script": "{{template_dir}}/scripts/base/snap.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
 -        {
@@ -146,13 +146,13 @@ index 0d70fc4d..f59d3190 100644
 -        {
 -            "type": "file",
 -            "source": "{{user `image_folder`}}/Ubuntu-Readme.md",
--            "destination": "{{template_dir}}/Ubuntu2004-README.md",
+-            "destination": "{{template_dir}}/Ubuntu2004-Readme.md",
 -            "direction": "download"
 -        },
          {
              "type": "shell",
              "scripts":[
-@@ -368,8 +341,7 @@
+@@ -376,8 +349,7 @@
          {
              "type": "shell",
              "inline": [
