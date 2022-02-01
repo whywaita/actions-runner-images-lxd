@@ -16,7 +16,7 @@ index 851e113a..14151bc8 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
-index 36c50d4a..1a436e7f 100644
+index 36c50d4a..4921f80a 100644
 --- a/images/linux/scripts/installers/dotnetcore-sdk.sh
 +++ b/images/linux/scripts/installers/dotnetcore-sdk.sh
 @@ -33,10 +33,10 @@ for version in ${DOTNET_VERSIONS[@]}; do
@@ -24,12 +24,12 @@ index 36c50d4a..1a436e7f 100644
      releases=$(cat "./${version}.json")
      if [[ $version == "6.0" ]]; then
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r 'first(.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
      else
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdk.version | select(contains("preview") or contains("rc") | not)'))
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
      fi
      rm ./${version}.json
  done
