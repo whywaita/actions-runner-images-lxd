@@ -20,7 +20,7 @@ jobs:
           sudo rm -rf /opt/ghc
           sudo rm -rf /usr/local/*
           # ignore /var/run, snap lxd packages
-          sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd" |  xargs -I%% sudo rm -rf %%
+          sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg/status" |  xargs -I%% sudo rm -rf %%
           # ignore /usr/share/dpkg
           ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
 
