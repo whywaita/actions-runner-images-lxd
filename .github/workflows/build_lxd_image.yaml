@@ -17,13 +17,16 @@ jobs:
       - uses: actions/checkout@v2
       - name: Delete unused file
         run: |
-          sudo rm -rf /opt/hostedtoolcache
-          sudo rm -rf /opt/ghc
+          sudo rm -rf /opt/
           sudo rm -rf /usr/local/*
+          sudo rm -rf /usr/local/.ghcup
+          sudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk
+          sudo rm -rf /home/runneradmin /home/linuxbrew
+          sudo rm -rf /home/runner/runners/*.tar.gz
           # ignore /var/run, snap lxd packages, apt
           sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg" |  xargs -I%% sudo rm -rf %%
           # ignore /usr/share/dpkg
-          ls /usr/share/ | grep -v dpkg | xargs -I%% sudo rm -rf /usr/share/%%
+          ls /usr/share/ | grep -vE "dpkg|debconf" | xargs -I%% sudo rm -rf /usr/share/%%
 
 
       - name: Clone actions/virtual-environments
@@ -40,6 +43,11 @@ jobs:
           cp ../lxd.patch .
           patch -p1 < lxd.patch
         working-directory: ${{ steps.clone.outputs.dir }}
+      - name: Prepare packer-plugin-lxd
+        run: |
+          wget http://${{ secrets.DEPLOY_HOST }}/packer-plugin-lxd
+          chmod +x ./packer-plugin-lxd
+        working-directory: ${{ steps.clone.outputs.dir }}
       - name: packer validate packer.json
         run: |
           /tmp/packer validate -syntax-only images/linux/ubuntu2004.json
@@ -51,20 +59,34 @@ jobs:
         env:
           PACKER_LOG: 1
 
-      - name: Export image
+
+      - name: Stop container
+        run: lxc stop packer-lxd
+      - name: Remove swap
         run: |
-          mkdir -p _output
-          lxc image export packer-lxd ./_output
-        working-directory: ${{ steps.clone.outputs.dir }}
-      - name: Compress image
+          sudo swapoff /mnt/swapfile
+          sudo rm -rf /mnt/swapfile
+      - name: distrobuilder
         run: |
-          zip -m ./_output/artifact.zip ./_output/*.tar.gz
-        working-directory: ${{ steps.clone.outputs.dir }}
+          wget http://${{ secrets.DEPLOY_HOST }}/distrobuilder
+          wget http://${{ secrets.DEPLOY_HOST }}/db.yaml
+          chmod +x ./distrobuilder
+
+          sudo mkdir -p /mnt/cache
+          sudo mkdir -p /mnt/output
+          sudo ./distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
+
+          set -x
+          ls -l /mnt/output
+      - name: Remove container
+        run: lxc delete packer-lxd
+
+
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}
-          path: ${{ steps.clone.outputs.dir }}/_output/*.zip
+          name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}.zip
+          path: /mnt/output/*
           retention-days: 1
 
 # 

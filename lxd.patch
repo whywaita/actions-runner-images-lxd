@@ -16,7 +16,7 @@ index 851e113a..14151bc8 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
-index 36c50d4a..1a436e7f 100644
+index 36c50d4a..4921f80a 100644
 --- a/images/linux/scripts/installers/dotnetcore-sdk.sh
 +++ b/images/linux/scripts/installers/dotnetcore-sdk.sh
 @@ -33,10 +33,10 @@ for version in ${DOTNET_VERSIONS[@]}; do
@@ -24,12 +24,12 @@ index 36c50d4a..1a436e7f 100644
      releases=$(cat "./${version}.json")
      if [[ $version == "6.0" ]]; then
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r 'first(.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
      else
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdk.version | select(contains("preview") or contains("rc") | not)'))
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-01-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
++        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
      fi
      rm ./${version}.json
  done
@@ -47,10 +47,10 @@ index cb81167e..135f7c99 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index a44f7402..5465882f 100644
+index a44f7402..33bc7153 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -31,29 +31,8 @@
+@@ -31,29 +31,9 @@
      ],
      "builders": [
          {
@@ -78,11 +78,12 @@ index a44f7402..5465882f 100644
 -            "image_sku": "20_04-lts",
 -            "os_disk_size_gb": "86"
 +          "type": "lxd",
-+          "image": "ubuntu:focal"
++          "image": "ubuntu:focal",
++          "skip_publish": true
          }
      ],
      "provisioners": [
-@@ -96,12 +75,12 @@
+@@ -96,12 +76,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -97,7 +98,7 @@ index a44f7402..5465882f 100644
          },
          {
              "type": "file",
-@@ -283,6 +262,17 @@
+@@ -283,6 +263,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -115,7 +116,7 @@ index a44f7402..5465882f 100644
          {
              "type": "shell",
              "scripts": [
-@@ -293,7 +283,7 @@
+@@ -293,7 +284,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -124,7 +125,7 @@ index a44f7402..5465882f 100644
          },
          {
              "type": "shell",
-@@ -322,23 +312,6 @@
+@@ -322,23 +313,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -148,7 +149,7 @@ index a44f7402..5465882f 100644
          {
              "type": "shell",
              "scripts":[
-@@ -376,8 +349,7 @@
+@@ -376,8 +350,7 @@
          {
              "type": "shell",
              "inline": [
