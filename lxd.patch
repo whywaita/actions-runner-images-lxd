@@ -1,8 +1,8 @@
 diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
-index 851e113a..14151bc8 100644
+index 47bebc0e..b9afdb09 100644
 --- a/images/linux/scripts/installers/configure-environment.sh
 +++ b/images/linux/scripts/installers/configure-environment.sh
-@@ -12,9 +12,9 @@ mkdir -p /etc/skel/.config/configstore
+@@ -15,9 +15,9 @@ mkdir -p /etc/skel/.config/configstore
  echo 'XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/environment
  
  # Change waagent entries to use /mnt for swapfile
@@ -47,16 +47,17 @@ index cb81167e..135f7c99 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index a44f7402..33bc7153 100644
+index 1b1b1d70..63ba5433 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -31,29 +31,9 @@
+@@ -32,30 +32,9 @@
      ],
      "builders": [
          {
 -            "type": "azure-arm",
 -            "client_id": "{{user `client_id`}}",
 -            "client_secret": "{{user `client_secret`}}",
+-            "client_cert_path": "{{user `client_cert_path`}}",
 -            "subscription_id": "{{user `subscription_id`}}",
 -            "tenant_id": "{{user `tenant_id`}}",
 -            "location": "{{user `location`}}",
@@ -77,13 +78,13 @@ index a44f7402..33bc7153 100644
 -            "image_offer": "0001-com-ubuntu-server-focal",
 -            "image_sku": "20_04-lts",
 -            "os_disk_size_gb": "86"
-+          "type": "lxd",
-+          "image": "ubuntu:focal",
-+          "skip_publish": true
++           "type": "lxd",
++           "image": "ubuntu:focal",
++           "skip_publish": true
          }
      ],
      "provisioners": [
-@@ -96,12 +76,12 @@
+@@ -98,12 +77,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -98,7 +99,7 @@ index a44f7402..33bc7153 100644
          },
          {
              "type": "file",
-@@ -283,6 +263,17 @@
+@@ -278,6 +257,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -116,7 +117,7 @@ index a44f7402..33bc7153 100644
          {
              "type": "shell",
              "scripts": [
-@@ -293,7 +284,7 @@
+@@ -288,7 +278,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -125,7 +126,7 @@ index a44f7402..33bc7153 100644
          },
          {
              "type": "shell",
-@@ -322,23 +313,6 @@
+@@ -317,23 +307,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -149,7 +150,7 @@ index a44f7402..33bc7153 100644
          {
              "type": "shell",
              "scripts":[
-@@ -376,8 +350,7 @@
+@@ -371,8 +344,7 @@
          {
              "type": "shell",
              "inline": [
