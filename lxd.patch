@@ -1,5 +1,5 @@
 diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
-index 47bebc0e..b9afdb09 100644
+index 05bf87ba..40bdccf0 100644
 --- a/images/linux/scripts/installers/configure-environment.sh
 +++ b/images/linux/scripts/installers/configure-environment.sh
 @@ -15,9 +15,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -16,10 +16,10 @@ index 47bebc0e..b9afdb09 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/linux/scripts/installers/dotnetcore-sdk.sh b/images/linux/scripts/installers/dotnetcore-sdk.sh
-index 36c50d4a..4921f80a 100644
+index bc9cbd8e..1ff47722 100644
 --- a/images/linux/scripts/installers/dotnetcore-sdk.sh
 +++ b/images/linux/scripts/installers/dotnetcore-sdk.sh
-@@ -33,10 +33,10 @@ for version in ${DOTNET_VERSIONS[@]}; do
+@@ -50,10 +50,10 @@ for version in ${DOTNET_VERSIONS[@]}; do
      download_with_retries "${release_url}" "." "${version}.json"
      releases=$(cat "./${version}.json")
      if [[ $version == "6.0" ]]; then
@@ -47,7 +47,7 @@ index cb81167e..135f7c99 100644
  brew_packages=$(get_toolset_value .brew[].name)
  for package in $brew_packages; do
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 1b1b1d70..63ba5433 100644
+index e7029996..12635a59 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -32,30 +32,9 @@
@@ -99,7 +99,7 @@ index 1b1b1d70..63ba5433 100644
          },
          {
              "type": "file",
-@@ -278,6 +257,17 @@
+@@ -280,6 +259,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -117,7 +117,7 @@ index 1b1b1d70..63ba5433 100644
          {
              "type": "shell",
              "scripts": [
-@@ -288,7 +278,7 @@
+@@ -290,7 +280,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -126,14 +126,18 @@ index 1b1b1d70..63ba5433 100644
          },
          {
              "type": "shell",
-@@ -317,23 +307,6 @@
+@@ -319,27 +309,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
 -        {
 -            "type": "shell",
+-            "max_retries": 3,
+-            "start_retry_timeout": "2m",
 -            "inline": [
+-                "pwsh -Command Write-Host Running SoftwareReport.Generator.ps1 script",
 -                "pwsh -File {{user `image_folder`}}/SoftwareReport/SoftwareReport.Generator.ps1 -OutputDirectory {{user `image_folder`}}",
+-                "pwsh -Command Write-Host Running RunAll-Tests.ps1 script",
 -                "pwsh -File {{user `image_folder`}}/tests/RunAll-Tests.ps1 -OutputDirectory {{user `image_folder`}}"
 -            ],
 -            "environment_vars": [
@@ -150,7 +154,7 @@ index 1b1b1d70..63ba5433 100644
          {
              "type": "shell",
              "scripts":[
-@@ -371,8 +344,7 @@
+@@ -377,8 +346,7 @@
          {
              "type": "shell",
              "inline": [
