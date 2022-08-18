@@ -1,30 +1,30 @@
-# virtual-environments-lxd
+# actions-runner-images-lxd
 
-virtual-environments-lxd build a runner image for [LXD](https://linuxcontainers.org/lxd/introduction/).
+actions-runner-images-lxd build a runner image for [LXD](https://linuxcontainers.org/lxd/introduction/).
 
-[actions/virtual-environments](https://github.com/actions/virtual-environments) is source code of [GitHub-hosted Runner](https://docs.github.com/en/actions/reference/specifications-for-github-hosted-runners) in GitHub Actions.
+[actions/runner-images](https://github.com/actions/runner-images) is source code of [GitHub-hosted Runner](https://docs.github.com/en/actions/reference/specifications-for-github-hosted-runners) in GitHub Actions.
 
 ## Workflows
 
 |Build|Build Status|
 |:-:|:-:|
-|Ubuntu 20.04 nightly build|[![nightly build](https://github.com/whywaita/virtual-environments-lxd/actions/workflows/nightly_build_lxd_image.yaml/badge.svg)](https://github.com/whywaita/virtual-environments-lxd/actions/workflows/nightly_build_lxd_image.yaml)|
+|Ubuntu 20.04 nightly build|[![nightly build](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly_build_lxd_image.yaml/badge.svg)](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly_build_lxd_image.yaml)|
 
 ## How to generate `lxd.patch`
 
 ```bash
 ## Clone original repository
-$ git clone https://github.com/actions/virtual-environments
+$ git clone https://github.com/actions/runner-images
 
 ## Apply lxd.patch
-$ cp ${path_to_whywaita/virtual-environments-lxd}/lxd.patch .
+$ cp ${path_to_whywaita/actions-runner-images-lxd}/lxd.patch .
 $ patch -p1 < lxd.patch
 
 ## Modify files
 <snip>
 
 ## Check diff
-$ git status                                                                                                                                                                                                                                                                                     [~/go/src/github.com/actions/virtual-environments]
+$ git diff
 On branch main
 Your branch is up to date with 'origin/main'.
 
