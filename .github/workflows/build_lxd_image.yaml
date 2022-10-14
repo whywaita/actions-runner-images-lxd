@@ -14,7 +14,7 @@ jobs:
           sudo unzip packer_1.7.0_linux_amd64.zip
           sudo mv ./packer /tmp/packer
           sudo rm -rf packer_1.7.0_linux_amd64.zip
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Delete unused file
         run: |
           sudo rm -rf /opt/
@@ -83,7 +83,7 @@ jobs:
 
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}.zip
           path: /mnt/output/*
