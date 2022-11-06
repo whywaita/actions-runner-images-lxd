@@ -14,7 +14,7 @@ jobs:
           sudo unzip packer_1.7.0_linux_amd64.zip
           sudo mv ./packer /tmp/packer
           sudo rm -rf packer_1.7.0_linux_amd64.zip
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Delete unused file
         run: |
           sudo rm -rf /opt/
@@ -35,27 +35,27 @@ jobs:
           git clone --depth 1 https://github.com/actions/virtual-environments
           cd virtual-environments
           export DIR=$(pwd)
-          echo "::set-output name=dir::${DIR}"
-          echo "::set-output name=virtual-environments-hash::$(git rev-parse --short HEAD)"
-          echo "::set-output name=build-date::$(date '+%Y%m%d')"
+          echo "dir=${DIR}" >> $GITHUB_ENV
+          echo "virtual-environments-hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "build-date=$(date '+%Y%m%d')" >> $GITHUB_ENV
       - name: Apply LXD patch
         run: |
           cp ../lxd.patch .
           patch -p1 < lxd.patch
-        working-directory: ${{ steps.clone.outputs.dir }}
+        working-directory: ${{ env.dir }}
       - name: Prepare packer-plugin-lxd
         run: |
           wget http://${{ secrets.DEPLOY_HOST }}/packer-plugin-lxd
           chmod +x ./packer-plugin-lxd
-        working-directory: ${{ steps.clone.outputs.dir }}
+        working-directory: ${{ env.dir }}
       - name: packer validate packer.json
         run: |
           /tmp/packer validate -syntax-only images/linux/ubuntu2004.json
-        working-directory: ${{ steps.clone.outputs.dir }}
+        working-directory: ${{ env.dir }}
       - name: packer build packer.json
         run: |
           /tmp/packer build -on-error=abort images/linux/ubuntu2004.json
-        working-directory: ${{ steps.clone.outputs.dir }}
+        working-directory: ${{ env.dir }}
         env:
           PACKER_LOG: 1
 
@@ -83,9 +83,9 @@ jobs:
 
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
-          name: virtual-environments-lxd-${{ steps.clone.outputs.virtual-environments-hash }}-${{ steps.clone.outputs.build-date }}.zip
+          name: virtual-environments-lxd-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip
           path: /mnt/output/*
           retention-days: 1
 
