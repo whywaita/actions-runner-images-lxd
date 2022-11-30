@@ -9,12 +9,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: whywaita/setup-lxd@v1
-      - name: setup-packer
+      - name: Setup packer
         run: |
           sudo apt-get install -y wget unzip
           sudo curl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip
           sudo unzip packer_1.7.0_linux_amd64.zip
           sudo mv ./packer /tmp/packer
+      - name: Setup packer-plugin-lxd
+        run: |
+          wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
+          unzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
+          rm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
+          mv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd
+          chmod +x /tmp/packer-plugin-lxd
+      - name: Setup distrobuilder
+        run: sudo snap install distrobuilder --classic
       - uses: actions/checkout@v3
       - name: Delete unused file
         run: |
@@ -45,18 +54,13 @@ jobs:
           cp ../lxd.patch .
           patch -p1 < lxd.patch
         working-directory: ${{ env.dir }}
-      - name: Prepare packer-plugin-lxd
-        run: |
-          wget http://${{ secrets.DEPLOY_HOST }}/packer-plugin-lxd
-          chmod +x ./packer-plugin-lxd
-        working-directory: ${{ env.dir }}
       - name: packer validate packer.json
         run: |
           /tmp/packer validate -syntax-only images/linux/ubuntu2004.json
         working-directory: ${{ env.dir }}
       - name: packer build packer.json
         run: |
-          /tmp/packer build -color=false -on-error=abort images/linux/ubuntu2004.json
+          PATH=$PATH:/tmp /tmp/packer build -color=false -on-error=abort images/linux/ubuntu2004.json
         working-directory: ${{ env.dir }}
         env:
           PACKER_LOG: 1
@@ -70,13 +74,9 @@ jobs:
           sudo rm -rf /mnt/swapfile
       - name: distrobuilder
         run: |
-          wget http://${{ secrets.DEPLOY_HOST }}/distrobuilder
-          wget http://${{ secrets.DEPLOY_HOST }}/db.yaml
-          chmod +x ./distrobuilder
-
           sudo mkdir -p /mnt/cache
           sudo mkdir -p /mnt/output
-          sudo ./distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
+          sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
 
           set -x
           ls -l /mnt/output
