@@ -1,5 +1,5 @@
 diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
-index 05bf87ba..40bdccf0 100644
+index 049283f6..b7bcf0ab 100644
 --- a/images/linux/scripts/installers/configure-environment.sh
 +++ b/images/linux/scripts/installers/configure-environment.sh
 @@ -15,9 +15,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -34,23 +34,23 @@ index bc9cbd8e..1ff47722 100644
      rm ./${version}.json
  done
 diff --git a/images/linux/scripts/installers/homebrew.sh b/images/linux/scripts/installers/homebrew.sh
-index cb81167e..135f7c99 100644
+index 1b4cbd21..179546ea 100644
 --- a/images/linux/scripts/installers/homebrew.sh
 +++ b/images/linux/scripts/installers/homebrew.sh
-@@ -26,6 +26,8 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
+@@ -22,6 +22,8 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
  echo "Validate the installation reloading /etc/environment"
  reloadEtcEnvironment
  
 +cd ${HOME}
 +
  # Install additional brew packages
- brew_packages=$(get_toolset_value .brew[].name)
- for package in $brew_packages; do
+ 
+ # brew GCC installation needed because the default Ubuntu components
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index e7029996..12635a59 100644
+index e7029996..c09a72e9 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -32,30 +32,9 @@
+@@ -32,33 +32,19 @@
      ],
      "builders": [
          {
@@ -84,7 +84,17 @@ index e7029996..12635a59 100644
          }
      ],
      "provisioners": [
-@@ -98,12 +77,12 @@
++        {
++            "type": "shell",
++            "inline": [
++                "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner"
++            ],
++            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++        },
+         {
+             "type": "shell",
+             "inline": [
+@@ -98,12 +84,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -99,7 +109,7 @@ index e7029996..12635a59 100644
          },
          {
              "type": "file",
-@@ -280,6 +259,17 @@
+@@ -280,6 +266,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -117,16 +127,16 @@ index e7029996..12635a59 100644
          {
              "type": "shell",
              "scripts": [
-@@ -290,7 +280,7 @@
+@@ -290,7 +287,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
 -            "execute_command": "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
-+            "execute_command": "sudo -u ubuntu /bin/sh -c '{{ .Vars }} {{ .Path }}'"
++            "execute_command": "sudo -u runner /bin/sh -c '{{ .Vars }} {{ .Path }}'"
          },
          {
              "type": "shell",
-@@ -319,27 +309,6 @@
+@@ -319,27 +316,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -154,7 +164,7 @@ index e7029996..12635a59 100644
          {
              "type": "shell",
              "scripts":[
-@@ -377,8 +346,7 @@
+@@ -377,8 +353,7 @@
          {
              "type": "shell",
              "inline": [
