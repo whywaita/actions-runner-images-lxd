@@ -4,98 +4,27 @@ on:
     - cron: "0 22 * * *"  # The start of builld is 7:00 AM JST. We wish to end until 10:00 AM JST.
   workflow_dispatch:
 
+
 jobs:
-  build:
+  build-focal:
     runs-on: ubuntu-20.04
     steps:
-      - uses: whywaita/setup-lxd@v1
-      - name: Setup packer
-        run: |
-          sudo apt-get install -y wget unzip
-          sudo curl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip
-          sudo unzip packer_1.7.0_linux_amd64.zip
-          sudo mv ./packer /tmp/packer
-      - name: Setup packer-plugin-lxd
-        run: |
-          wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-          unzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-          rm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-          mv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd
-          chmod +x /tmp/packer-plugin-lxd
-      - name: Setup distrobuilder
-        run: sudo snap install distrobuilder --classic
       - uses: actions/checkout@v3
-      - name: Delete unused file
-        run: |
-          sudo rm -rf /opt/
-          sudo rm -rf /usr/local/*
-          sudo rm -rf /usr/local/.ghcup
-          sudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk
-          sudo rm -rf /home/runneradmin /home/linuxbrew
-          sudo rm -rf /home/runner/runners/*.tar.gz
-          # ignore /var/run, snap lxd packages, apt
-          sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg" |  xargs -I%% sudo rm -rf %%
-          # ignore /usr/share/dpkg
-          ls /usr/share/ | grep -vE "dpkg|debconf" | xargs -I%% sudo rm -rf /usr/share/%%
-
-
-
-      - name: Clone actions/virtual-environments
-        id: clone
-        run: |
-          git clone --depth 1 https://github.com/actions/virtual-environments
-          cd virtual-environments
-
-          echo "dir=$(pwd)" >> $GITHUB_ENV
-          echo "virtual-environments-hash=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
-          echo "build-date=$(date '+%Y%m%d')" >> $GITHUB_ENV
-      - name: Apply LXD patch
-        run: |
-          cp ../lxd.patch .
-          patch -p1 < lxd.patch
-        working-directory: ${{ env.dir }}
-      - name: packer validate packer.json
-        run: |
-          /tmp/packer validate -syntax-only images/linux/ubuntu2004.json
-        working-directory: ${{ env.dir }}
-      - name: packer build packer.json
-        run: |
-          PATH=$PATH:/tmp /tmp/packer build -color=false -on-error=abort images/linux/ubuntu2004.json
-        working-directory: ${{ env.dir }}
-        env:
-          PACKER_LOG: 1
-
-
-      - name: Stop container
-        run: lxc stop packer-lxd
-      - name: Remove swap
-        run: |
-          sudo swapoff /mnt/swapfile
-          sudo rm -rf /mnt/swapfile
-      - name: distrobuilder
-        run: |
-          sudo mkdir -p /mnt/cache
-          sudo mkdir -p /mnt/output
-          sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
-
-          set -x
-          ls -l /mnt/output
-      - name: Remove container
-        run: lxc delete packer-lxd
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
+      - uses: ./.github/actions/build
         with:
-          name: virtual-environments-lxd-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip
-          path: /mnt/output/*
+          packer_definition_path: images/linux/ubuntu2004.json
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          notify: true
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
           retention-days: 5
-
-
-      - name: Notify status
-        uses: lazy-actions/slatify@master
-        if: always()
+  build-jammy:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v3
+      - uses: ./.github/actions/build
         with:
-          job_name: '*nightly build virtual-environments-lxd*'
-          type: ${{ job.status }}
-          icon_emoji: ":octocat:"
-          url: ${{ secrets.SLACK_WEBHOOK_URL }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          packer_definition_path: images/linux/ubuntu2204.pkr.hcl
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          notify: true
+          slack_webhook_url: ${{ secrets.SLACK_WEBHOOK_URL }}
+          retention-days: 5
