@@ -95,7 +95,7 @@ runs:
 
     - name: Stop container
       shell: bash
-      run: lxc stop packer-lxd
+      run: lxc stop packer-build-vhd
     - name: Remove swap
       shell: bash
       run: |
@@ -106,13 +106,13 @@ runs:
       run: |
         sudo mkdir -p /mnt/cache
         sudo mkdir -p /mnt/output
-        sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
+        sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-build-vhd" /mnt/output --cache-dir /mnt/cache
 
         set -x
         ls -l /mnt/output
     - name: Remove container
       shell: bash
-      run: lxc delete packer-lxd
+      run: lxc delete packer-build-vhd
 
 
     - name: Upload artifact
