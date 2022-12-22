@@ -118,7 +118,7 @@ runs:
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: virtual-environments-lxd-${{ env.os-release }}${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip
+        name: virtual-environments-lxd-${{ env.os-release }}-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip
         path: /mnt/output/*
         retention-days: ${{ inputs.retension-days }}
 
