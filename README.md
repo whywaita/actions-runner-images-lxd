@@ -8,7 +8,8 @@ actions-runner-images-lxd build a runner image for [LXD](https://linuxcontainers
 
 |Build|Build Status|
 |:-:|:-:|
-|Ubuntu 20.04 nightly build|[![nightly build](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly_build_lxd_image.yaml/badge.svg)](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly_build_lxd_image.yaml)|
+|Ubuntu 20.04 nightly build|[![nightly build](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-focal.yaml/badge.svg)](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-focal.yaml)|
+|Ubuntu 22.04 nightly build|[![nightly build](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-jammy.yaml/badge.svg)](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-jammy.yaml)|
 
 ## How to generate `lxd.patch`
 
