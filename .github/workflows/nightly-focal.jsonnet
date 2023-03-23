@@ -1,10 +1,9 @@
 local steps_focal = (import './lib/step.libsonnet')('images/linux/ubuntu2004.json');
-local steps_jammy = (import './lib/step.libsonnet')('images/linux/ubuntu2204.pkr.hcl');
 
 local steps_notify = (import './lib/notify.libsonnet');
 
 {
-  name: 'Build image (nightly)',
+  name: 'Build image (nightly) - focal',
   on: {
     schedule: [
       {
@@ -17,12 +16,6 @@ local steps_notify = (import './lib/notify.libsonnet');
     'build-focal': steps_focal {
       'runs-on': 'ubuntu-20.04',
       steps: steps_focal.steps + [
-        steps_notify,
-      ],
-    },
-    'build-jammy': steps_jammy {
-      'runs-on': 'ubuntu-22.04',
-      steps: steps_jammy.steps + [
         steps_notify,
       ],
     },
