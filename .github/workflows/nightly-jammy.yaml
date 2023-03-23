@@ -1,0 +1,121 @@
+{
+   "jobs": {
+      "build-jammy": {
+         "runs-on": "ubuntu-22.04",
+         "steps": [
+            {
+               "uses": "actions/checkout@v3"
+            },
+            {
+               "uses": "whywaita/setup-lxd@v1"
+            },
+            {
+               "name": "Setup packer",
+               "run": "sudo apt-get install -y wget unzip\ncurl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip\nunzip packer_1.7.0_linux_amd64.zip\nmv ./packer /tmp/packer\nchmod +x /tmp/packer\nrm -rf packer_1.7.0_linux_amd64.zip\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Setup packer-plugin-lxd",
+               "run": "wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\nunzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\nmv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd\nchmod +x /tmp/packer-plugin-lxd\nrm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Setup distrobuilder",
+               "run": "sudo snap install distrobuilder --classic",
+               "shell": "bash"
+            },
+            {
+               "name": "Delete unused file",
+               "run": "sudo rm -rf /opt/\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Display storage information",
+               "run": "df -Th",
+               "shell": "bash"
+            },
+            {
+               "name": "Clone actions/runner-images",
+               "run": "git clone --depth 1 https://github.com/actions/runner-images\ncd runner-images\nexport DIR=$(pwd)\necho \"dir=${DIR}\" >> $GITHUB_ENV\necho \"virtual-environments-hash=$(git rev-parse --short HEAD)\" >> $GITHUB_ENV\necho \"build-date=$(date '+%Y%m%d')\" >> $GITHUB_ENV\necho \"os-release=$(cat /etc/lsb-release | grep DISTRIB_RELEASE | cut -d'=' -f2)\" >> $GITHUB_ENV\n",
+               "shell": "bash"
+            },
+            {
+               "if": "${{ env.os-release == '22.04' }}",
+               "name": "Clear duplicate entry in nftables (only jammy)",
+               "run": "# ref: https://discuss.linuxcontainers.org/t/lxdbr0-firewall-problem-with-ubuntu-22-04-host-running-docker-and-lxd/15298/9\nsudo apt-get purge moby-containerd\nsudo apt-get autoremove\n\nsudo nft flush ruleset\nsudo systemctl restart snap.lxd.daemon\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Apply LXD patch",
+               "run": "cp ../lxd.patch .\npatch -p1 < lxd.patch\n",
+               "shell": "bash",
+               "working-directory": "${{ env.dir }}"
+            },
+            {
+               "name": "packer validate packer.json",
+               "run": "/tmp/packer validate -syntax-only images/linux/ubuntu2204.pkr.hcl",
+               "shell": "bash",
+               "working-directory": "${{ env.dir }}"
+            },
+            {
+               "env": {
+                  "PACKER_LOG": 1
+               },
+               "name": "packer build packer.json",
+               "run": "PATH=$PATH:/tmp /tmp/packer build -on-error=abort images/linux/ubuntu2204.pkr.hcl",
+               "shell": "bash",
+               "working-directory": "${{ env.dir }}"
+            },
+            {
+               "name": "Stop container",
+               "run": "lxc stop packer-lxd",
+               "shell": "bash"
+            },
+            {
+               "name": "Remove swap",
+               "run": "sudo swapoff /mnt/swapfile\nsudo rm -rf /mnt/swapfile\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Build by distrobuilder",
+               "run": "sudo mkdir -p /mnt/cache\nsudo mkdir -p /mnt/output\nsudo distrobuilder pack-lxd distrobuilder-def.yaml \"/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd\" /mnt/output --cache-dir /mnt/cache\n\nset -x\nls -l /mnt/output\n",
+               "shell": "bash"
+            },
+            {
+               "name": "Remove container",
+               "run": "lxc delete packer-lxd",
+               "shell": "bash"
+            },
+            {
+               "name": "Upload artifact",
+               "uses": "actions/upload-artifact@v3",
+               "with": {
+                  "name": "virtual-environments-lxd-${{ env.os-release }}-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
+                  "path": "/mnt/output/*",
+                  "retention-days": 5
+               }
+            },
+            {
+               "name": "Notify status",
+               "uses": "lazy-actions/slatify@master",
+               "with": {
+                  "icon_emoji": ":octocat:",
+                  "job_name": "Build actions-image-runner-lxd",
+                  "token": "${{ secrets.token }}",
+                  "type": "${{ job.status }}",
+                  "url": "${{ secrets.SLACK_WEBHOOK_URL }}"
+               }
+            }
+         ]
+      }
+   },
+   "name": "Build image (nightly) - jammy",
+   "on": {
+      "schedule": [
+         {
+            "cron": "0 22 * * *"
+         }
+      ],
+      "workflow_dispatch": { }
+   }
+}
