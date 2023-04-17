@@ -47,7 +47,7 @@ index d1337214..37be4975 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index 05677d2a..0f6114a9 100644
+index 97f539b3..020479db 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -32,33 +32,23 @@
@@ -113,7 +113,7 @@ index 05677d2a..0f6114a9 100644
          },
          {
              "type": "file",
-@@ -286,6 +276,17 @@
+@@ -285,6 +275,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -131,7 +131,7 @@ index 05677d2a..0f6114a9 100644
          {
              "type": "shell",
              "scripts": [
-@@ -296,7 +297,7 @@
+@@ -295,7 +296,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -140,7 +140,7 @@ index 05677d2a..0f6114a9 100644
          },
          {
              "type": "shell",
-@@ -325,33 +326,6 @@
+@@ -324,33 +325,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -174,7 +174,7 @@ index 05677d2a..0f6114a9 100644
          {
              "type": "shell",
              "scripts":[
-@@ -389,8 +363,7 @@
+@@ -388,8 +362,7 @@
          {
              "type": "shell",
              "inline": [
@@ -185,7 +185,7 @@ index 05677d2a..0f6114a9 100644
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          }
 diff --git a/images/linux/ubuntu2204.pkr.hcl b/images/linux/ubuntu2204.pkr.hcl
-index d59d6903..2d12f707 100644
+index 7a718eb6..676aca08 100644
 --- a/images/linux/ubuntu2204.pkr.hcl
 +++ b/images/linux/ubuntu2204.pkr.hcl
 @@ -1,45 +1,3 @@
@@ -195,7 +195,7 @@ index d59d6903..2d12f707 100644
 -  default = []
 -}
 -
--variable "azure_tag" {
+-variable "azure_tags" {
 -  type    = map(string)
 -  default = {}
 -}
@@ -335,7 +335,7 @@ index d59d6903..2d12f707 100644
 -  vm_size                                = "${var.vm_size}"
 -
 -  dynamic "azure_tag" {
--    for_each = var.azure_tag
+-    for_each = var.azure_tags
 -    content {
 -      name = azure_tag.key
 -      value = azure_tag.value
@@ -371,7 +371,7 @@ index d59d6903..2d12f707 100644
      source      = "${path.root}/scripts/installers"
    }
  
-@@ -353,10 +233,16 @@ build {
+@@ -352,10 +232,16 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -389,7 +389,7 @@ index d59d6903..2d12f707 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      script          = "${path.root}/scripts/base/snap.sh"
-@@ -380,23 +266,6 @@ build {
+@@ -379,23 +265,6 @@ build {
      script          = "${path.root}/scripts/base/apt-mock-remove.sh"
    }
  
@@ -413,7 +413,7 @@ index d59d6903..2d12f707 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -418,9 +287,4 @@ build {
+@@ -417,9 +286,4 @@ build {
      inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2204.conf /etc/vsts/machine_instance.conf"]
    }
  
