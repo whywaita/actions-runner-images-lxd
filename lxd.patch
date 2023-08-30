@@ -1,5 +1,5 @@
 diff --git a/images/linux/scripts/installers/configure-environment.sh b/images/linux/scripts/installers/configure-environment.sh
-index 049283f6..b7bcf0ab 100644
+index f7973d54..50999df2 100644
 --- a/images/linux/scripts/installers/configure-environment.sh
 +++ b/images/linux/scripts/installers/configure-environment.sh
 @@ -15,9 +15,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -47,7 +47,7 @@ index d1337214..37be4975 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index e89da3bb..e435ebb7 100644
+index ee368db1..19a3100e 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
 @@ -32,33 +32,23 @@
@@ -113,21 +113,7 @@ index e89da3bb..e435ebb7 100644
          },
          {
              "type": "file",
-@@ -210,6 +200,13 @@
-             ],
-             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-+        {
-+            "type": "shell",
-+            "inline": [
-+                "gpasswd -a runner docker"
-+            ],
-+            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+        },
-         {
-             "type": "shell",
-             "scripts": [
-@@ -282,6 +279,17 @@
+@@ -268,6 +258,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -141,6 +127,20 @@ index e89da3bb..e435ebb7 100644
 +            "inline": [
 +                "sudo chmod 777 ${INSTALLER_SCRIPT_FOLDER}/toolset.json"
 +            ]
++        },
+         {
+             "type": "shell",
+             "scripts": [
+@@ -282,6 +283,13 @@
+             ],
+             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+         },
++        {
++            "type": "shell",
++            "inline": [
++                "gpasswd -a runner docker"
++            ],
++            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +        },
          {
              "type": "shell",
@@ -199,7 +199,7 @@ index e89da3bb..e435ebb7 100644
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          }
 diff --git a/images/linux/ubuntu2204.pkr.hcl b/images/linux/ubuntu2204.pkr.hcl
-index 72256231..9bfb36bb 100644
+index d4018a44..84287139 100644
 --- a/images/linux/ubuntu2204.pkr.hcl
 +++ b/images/linux/ubuntu2204.pkr.hcl
 @@ -1,45 +1,3 @@
@@ -385,8 +385,8 @@ index 72256231..9bfb36bb 100644
      source      = "${path.root}/scripts/installers"
    }
  
-@@ -286,6 +166,13 @@ build {
-     scripts          = ["${path.root}/scripts/installers/docker-compose.sh", "${path.root}/scripts/installers/docker-moby.sh"]
+@@ -350,6 +230,13 @@ build {
+     scripts          = ["${path.root}/scripts/installers/docker-compose.sh", "${path.root}/scripts/installers/docker.sh"]
    }
  
 +  provisioner "shell" {
@@ -397,8 +397,8 @@ index 72256231..9bfb36bb 100644
 +  }
 +
    provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "DEBIAN_FRONTEND=noninteractive"]
-     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
 @@ -364,10 +251,16 @@ build {
  
    provisioner "shell" {
