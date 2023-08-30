@@ -70,9 +70,6 @@ function(packer_def_path) {
       'if': "${{ env.os-release == '22.04' }}",
       run: |||
         # ref: https://discuss.linuxcontainers.org/t/lxdbr0-firewall-problem-with-ubuntu-22-04-host-running-docker-and-lxd/15298/9
-        sudo apt-get purge moby-containerd
-        sudo apt-get autoremove
-
         sudo nft flush ruleset
         sudo systemctl restart snap.lxd.daemon
       |||,

@@ -42,7 +42,7 @@
             {
                "if": "${{ env.os-release == '22.04' }}",
                "name": "Clear duplicate entry in nftables (only jammy)",
-               "run": "# ref: https://discuss.linuxcontainers.org/t/lxdbr0-firewall-problem-with-ubuntu-22-04-host-running-docker-and-lxd/15298/9\nsudo apt-get purge moby-containerd\nsudo apt-get autoremove\n\nsudo nft flush ruleset\nsudo systemctl restart snap.lxd.daemon\n",
+               "run": "# ref: https://discuss.linuxcontainers.org/t/lxdbr0-firewall-problem-with-ubuntu-22-04-host-running-docker-and-lxd/15298/9\nsudo nft flush ruleset\nsudo systemctl restart snap.lxd.daemon\n",
                "shell": "bash"
             },
             {
