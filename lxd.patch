@@ -47,10 +47,10 @@ index d1337214..37be4975 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/linux/ubuntu2004.json b/images/linux/ubuntu2004.json
-index ee368db1..19a3100e 100644
+index b9514c57..8287b683 100644
 --- a/images/linux/ubuntu2004.json
 +++ b/images/linux/ubuntu2004.json
-@@ -32,33 +32,23 @@
+@@ -31,31 +31,23 @@
      ],
      "builders": [
          {
@@ -62,12 +62,10 @@ index ee368db1..19a3100e 100644
 -            "tenant_id": "{{user `tenant_id`}}",
 -            "location": "{{user `location`}}",
 -            "vm_size": "{{user `vm_size`}}",
--            "resource_group_name": "{{user `resource_group`}}",
--            "storage_account": "{{user `storage_account`}}",
+-            "managed_image_name": "{{user `managed_image_name`}}",
+-            "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
 -            "build_resource_group_name": "{{user `build_resource_group_name`}}",
 -            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
--            "capture_container_name": "images",
--            "capture_name_prefix": "{{user `capture_name_prefix`}}",
 -            "virtual_network_name": "{{user `virtual_network_name`}}",
 -            "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
 -            "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
@@ -78,10 +76,10 @@ index ee368db1..19a3100e 100644
 -            "image_offer": "0001-com-ubuntu-server-focal",
 -            "image_sku": "20_04-lts",
 -            "os_disk_size_gb": "86"
-+           "type": "lxd",
-+           "image": "ubuntu:focal",
-+           "container_name": "packer-lxd",
-+           "skip_publish": true
++          "type": "lxd",
++          "image": "ubuntu:focal",
++          "container_name": "packer-lxd",
++          "skip_publish": true
          }
      ],
      "provisioners": [
@@ -98,7 +96,7 @@ index ee368db1..19a3100e 100644
          {
              "type": "shell",
              "inline": [
-@@ -106,12 +96,12 @@
+@@ -103,12 +95,12 @@
          {
              "type": "file",
              "source": "{{template_dir}}/scripts/helpers",
@@ -113,7 +111,7 @@ index ee368db1..19a3100e 100644
          },
          {
              "type": "file",
-@@ -268,6 +258,17 @@
+@@ -265,6 +257,17 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -131,7 +129,7 @@ index ee368db1..19a3100e 100644
          {
              "type": "shell",
              "scripts": [
-@@ -282,6 +283,13 @@
+@@ -279,6 +282,13 @@
              ],
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -145,7 +143,7 @@ index ee368db1..19a3100e 100644
          {
              "type": "shell",
              "scripts": [
-@@ -315,7 +323,7 @@
+@@ -312,7 +322,7 @@
                  "DEBIAN_FRONTEND=noninteractive",
                  "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
              ],
@@ -154,7 +152,7 @@ index ee368db1..19a3100e 100644
          },
          {
              "type": "shell",
-@@ -344,33 +352,6 @@
+@@ -341,33 +351,6 @@
              "script": "{{template_dir}}/scripts/base/apt-mock-remove.sh",
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          },
@@ -188,7 +186,7 @@ index ee368db1..19a3100e 100644
          {
              "type": "shell",
              "scripts":[
-@@ -408,8 +389,7 @@
+@@ -405,8 +388,7 @@
          {
              "type": "shell",
              "inline": [
@@ -199,11 +197,13 @@ index ee368db1..19a3100e 100644
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          }
 diff --git a/images/linux/ubuntu2204.pkr.hcl b/images/linux/ubuntu2204.pkr.hcl
-index d4018a44..84287139 100644
+index 0001838c..de142ef8 100644
 --- a/images/linux/ubuntu2204.pkr.hcl
 +++ b/images/linux/ubuntu2204.pkr.hcl
-@@ -1,45 +1,3 @@
--
+@@ -2,47 +2,6 @@ locals {
+   managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
+ }
+ 
 -variable "allowed_inbound_ip_addresses" {
 -  type    = list(string)
 -  default = []
@@ -219,9 +219,9 @@ index d4018a44..84287139 100644
 -  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
 -}
 -
--variable "capture_name_prefix" {
+-variable "managed_image_name" {
 -  type    = string
--  default = "packer"
+-  default = ""
 -}
 -
 -variable "client_id" {
@@ -248,7 +248,7 @@ index d4018a44..84287139 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -80,107 +38,29 @@ variable "installer_script_folder" {
+@@ -83,100 +42,29 @@ variable "installer_script_folder" {
    default = "/imagegeneration/installers"
  }
  
@@ -267,7 +267,7 @@ index d4018a44..84287139 100644
 -  default = false
 -}
 -
--variable "resource_group" {
+-variable "managed_image_resource_group_name" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_GROUP")}"
 -}
@@ -277,11 +277,6 @@ index d4018a44..84287139 100644
    default = false
  }
  
--variable "storage_account" {
--  type    = string
--  default = "${env("ARM_STORAGE_ACCOUNT")}"
--}
--
 -variable "subscription_id" {
 -  type    = string
 -  default = "${env("ARM_SUBSCRIPTION_ID")}"
@@ -323,11 +318,9 @@ index d4018a44..84287139 100644
 +build {
 +  sources = ["source.lxd.build-vhd"]
  
--source "azure-arm" "build_vhd" {
+-source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
--  capture_container_name                 = "images"
--  capture_name_prefix                    = "${var.capture_name_prefix}"
 -  client_id                              = "${var.client_id}"
 -  client_secret                          = "${var.client_secret}"
 -  client_cert_path                       = "${var.client_cert_path}"
@@ -338,8 +331,8 @@ index d4018a44..84287139 100644
 -  os_disk_size_gb                        = "86"
 -  os_type                                = "Linux"
 -  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
--  resource_group_name                    = "${var.resource_group}"
--  storage_account                        = "${var.storage_account}"
+-  managed_image_name                     = "${local.managed_image_name}"
+-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
 -  subscription_id                        = "${var.subscription_id}"
 -  temp_resource_group_name               = "${var.temp_resource_group_name}"
 -  tenant_id                              = "${var.tenant_id}"
@@ -366,11 +359,11 @@ index d4018a44..84287139 100644
 -}
 -
 -build {
--  sources = ["source.azure-arm.build_vhd"]
+-  sources = ["source.azure-arm.build_image"]
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -216,12 +96,12 @@ build {
+@@ -212,12 +100,12 @@ build {
    }
  
    provisioner "file" {
@@ -385,7 +378,7 @@ index d4018a44..84287139 100644
      source      = "${path.root}/scripts/installers"
    }
  
-@@ -350,6 +230,13 @@ build {
+@@ -346,6 +234,13 @@ build {
      scripts          = ["${path.root}/scripts/installers/docker-compose.sh", "${path.root}/scripts/installers/docker.sh"]
    }
  
@@ -399,7 +392,7 @@ index d4018a44..84287139 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -364,10 +251,16 @@ build {
+@@ -360,10 +255,16 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -417,7 +410,7 @@ index d4018a44..84287139 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      script          = "${path.root}/scripts/base/snap.sh"
-@@ -391,23 +284,6 @@ build {
+@@ -387,23 +288,6 @@ build {
      script          = "${path.root}/scripts/base/apt-mock-remove.sh"
    }
  
@@ -441,7 +434,7 @@ index d4018a44..84287139 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -429,9 +305,4 @@ build {
+@@ -425,9 +309,4 @@ build {
      inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2204.conf /etc/vsts/machine_instance.conf"]
    }
  
