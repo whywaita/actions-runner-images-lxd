@@ -96,14 +96,33 @@
                }
             },
             {
-               "name": "Notify status",
-               "uses": "lazy-actions/slatify@master",
+               "env": {
+                  "SLACK_WEBHOOK_TYPE": "INCOMING_WEBHOOK",
+                  "SLACK_WEBHOOK_URL": "${{ secrets.SLACK_WEBHOOK_URL }}"
+               },
+               "name": "Notify",
+               "uses": "slackapi/slack-github-action@v1",
                "with": {
-                  "icon_emoji": ":octocat:",
-                  "job_name": "Build actions-image-runner-lxd",
-                  "token": "${{ secrets.token }}",
-                  "type": "${{ job.status }}",
-                  "url": "${{ secrets.SLACK_WEBHOOK_URL }}"
+                  "blocks": [
+                     {
+                        "blocks": [
+                           {
+                              "fields": [
+                                 {
+                                    "text": "repository <https://github.com/whywaita/actions-runner-images-lxd|whywaita/actions-runner-images-lxd>",
+                                    "type": "mrkdwn"
+                                 },
+                                 {
+                                    "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>",
+                                    "type": "mrkdwn"
+                                 }
+                              ],
+                              "type": "section"
+                           }
+                        ]
+                     }
+                  ],
+                  "text": "Build actions-image-runner-lxd ${{ job.status }}"
                }
             }
          ]

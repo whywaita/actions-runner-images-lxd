@@ -1,11 +1,30 @@
 {
-  name: 'Notify status',
-  uses: 'lazy-actions/slatify@master',
+  name: 'Notify',
+  uses: 'slackapi/slack-github-action@v1',
   with: {
-    job_name: 'Build actions-image-runner-lxd',
-    type: '${{ job.status }}',
-    icon_emoji: ':octocat:',
-    url: '${{ secrets.SLACK_WEBHOOK_URL }}',
-    token: '${{ secrets.token }}',
+    text: 'Build actions-image-runner-lxd ${{ job.status }}',
+    blocks: [
+      {
+        blocks: [
+          {
+            type: "section",
+            fields: [
+              {
+                type: 'mrkdwn',
+                text: 'repository <https://github.com/whywaita/actions-runner-images-lxd|whywaita/actions-runner-images-lxd>',
+              },
+              {
+                type: 'mrkdwn',
+                text: '<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>',
+              },
+            ]
+          }
+        ]
+      }
+    ]
   },
+  env: {
+    SLACK_WEBHOOK_URL: '${{ secrets.SLACK_WEBHOOK_URL }}',
+    SLACK_WEBHOOK_TYPE: 'INCOMING_WEBHOOK'
+  }
 }
