@@ -4,7 +4,7 @@
   with: {
     payload: |||
       {
-        "text": 'Build actions-image-runner-lxd ${{ job.status }}',
+        "text": "Build actions-image-runner-lxd ${{ job.status }}",
         "blocks": [
           {
             "type": "section",
