@@ -4,8 +4,14 @@
   with: {
     payload: |||
       {
-        "text": "Build actions-image-runner-lxd ${{ job.status }}",
         "blocks": [
+          {
+            "type": "section",
+            "text": {
+              "type": "mrkdwn",
+              "text": "Build actions-image-runner-lxd ${{ github.workflow }} is ${{ job.status }}"
+            }
+          },
           {
             "type": "section",
             "fields": [
@@ -15,7 +21,7 @@
               },
               {
                 "type": "mrkdwn",
-                "text": "<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>"
+                "text": ":arrow_right: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>"
               }
             ]
           }
