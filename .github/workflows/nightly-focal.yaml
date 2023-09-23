@@ -7,6 +7,9 @@
                "uses": "actions/checkout@v3"
             },
             {
+               "uses": "runforesight/workflow-telemetry-action@v1"
+            },
+            {
                "uses": "whywaita/setup-lxd@v1"
             },
             {
@@ -103,7 +106,7 @@
                "name": "Notify",
                "uses": "slackapi/slack-github-action@v1",
                "with": {
-                  "payload": "{\n  \"text\": \"Build actions-image-runner-lxd ${{ job.status }}\",\n  \"blocks\": [\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Repository*: <https://github.com/whywaita/actions-runner-images-lxd|whywaita/actions-runner-images-lxd>\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>\"\n        }\n      ]\n    }\n  ]\n}\n"
+                  "payload": "{\n  \"blocks\": [\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"Build actions-image-runner-lxd ${{ github.workflow }} is ${{ job.status }}\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Repository*: <https://github.com/whywaita/actions-runner-images-lxd|whywaita/actions-runner-images-lxd>\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \":arrow_right: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>\"\n        }\n      ]\n    }\n  ]\n}\n"
                }
             }
          ]
