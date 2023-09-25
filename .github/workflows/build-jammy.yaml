@@ -10,6 +10,9 @@
                "uses": "runforesight/workflow-telemetry-action@v1"
             },
             {
+               "uses": "Kesin11/actions-timeline@v0"
+            },
+            {
                "uses": "whywaita/setup-lxd@v1"
             },
             {
