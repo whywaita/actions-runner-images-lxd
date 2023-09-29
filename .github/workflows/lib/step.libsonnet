@@ -2,7 +2,7 @@ function(packer_def_path) {
   steps: [
     { uses: 'actions/checkout@v3' },
     { uses: 'runforesight/workflow-telemetry-action@v1' },
-    { uses: 'Kesin11/actions-timeline@v0' },
+    { uses: 'Kesin11/actions-timeline@v1' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
       name: 'Setup packer',
