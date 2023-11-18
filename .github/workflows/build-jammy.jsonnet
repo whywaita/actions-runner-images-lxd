@@ -1,4 +1,4 @@
-local steps_jammy = (import './lib/step.libsonnet')('images/linux/ubuntu2204.pkr.hcl');
+local steps_jammy = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-22.04.pkr.hcl');
 
 {
   name: 'Build image - jammy',
