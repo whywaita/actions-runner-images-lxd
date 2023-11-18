@@ -4,22 +4,12 @@ function(packer_def_path) {
     { uses: 'whywaita/workflow-telemetry-action@add-disk-space' },
     { uses: 'Kesin11/actions-timeline@v1' },
     { uses: 'whywaita/setup-lxd@v1' },
-    {
-      name: 'Setup packer',
-      shell: 'bash',
-      run: |||
-        sudo apt-get install -y wget unzip
-        curl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip
-        unzip packer_1.7.0_linux_amd64.zip
-        mv ./packer /tmp/packer
-        chmod +x /tmp/packer
-        rm -rf packer_1.7.0_linux_amd64.zip
-      |||,
-    },
+    { uses: 'hashicorp/setup-packer@v2.0.0' },
     {
       name: 'Setup packer-plugin-lxd',
       shell: 'bash',
       run: |||
+        sudo apt-get install -y wget unzip
         wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
         unzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
         mv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd
