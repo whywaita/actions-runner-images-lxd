@@ -1,4 +1,4 @@
-local steps_focal = (import './lib/step.libsonnet')('images/linux/ubuntu2004.json');
+local steps_focal = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-20.04.json');
 
 local steps_notify = (import './lib/notify.libsonnet');
 
