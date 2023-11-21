@@ -78,13 +78,13 @@ function(packer_def_path) {
     {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('/tmp/packer validate -syntax-only %s', packer_def_path),
+      run: std.format('packer validate -syntax-only %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('PATH=$PATH:/tmp /tmp/packer build -on-error=abort %s', packer_def_path),
+      run: std.format('PATH=$PATH:/tmp packer build -on-error=abort %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,
