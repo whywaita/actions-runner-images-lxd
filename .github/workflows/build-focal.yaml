@@ -57,7 +57,7 @@
             },
             {
                "name": "packer validate packer.json",
-               "run": "/tmp/packer validate -syntax-only images/linux/ubuntu2004.json",
+               "run": "/tmp/packer validate -syntax-only images/ubuntu/templates/ubuntu-20.04.json",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -66,7 +66,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "PATH=$PATH:/tmp /tmp/packer build -on-error=abort images/linux/ubuntu2004.json",
+               "run": "PATH=$PATH:/tmp /tmp/packer build -on-error=abort images/ubuntu/templates/ubuntu-20.04.json",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
