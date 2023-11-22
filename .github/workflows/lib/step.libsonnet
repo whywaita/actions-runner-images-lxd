@@ -76,6 +76,9 @@ function(packer_def_path) {
       'working-directory': '${{ env.dir }}',
     },
     {
+      run: 'which packer',
+    },
+    {
       name: 'packer validate packer.json',
       shell: 'bash',
       run: std.format('packer validate -syntax-only %s', packer_def_path),

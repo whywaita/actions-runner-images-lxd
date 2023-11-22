@@ -56,6 +56,9 @@
                "working-directory": "${{ env.dir }}"
             },
             {
+               "run": "which packer"
+            },
+            {
                "name": "packer validate packer.json",
                "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-20.04.json",
                "shell": "bash",
