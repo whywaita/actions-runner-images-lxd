@@ -173,13 +173,14 @@ index e1d36d39..caea6d68 100644
              "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
          }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 45aa217f..47b396f3 100644
+index 45aa217f..cd267513 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-@@ -2,47 +2,6 @@ locals {
-   managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
- }
- 
+@@ -1,48 +1,3 @@
+-locals {
+-  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
+-}
+-
 -variable "allowed_inbound_ip_addresses" {
 -  type    = list(string)
 -  default = []
@@ -224,19 +225,15 @@ index 45aa217f..47b396f3 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -83,99 +42,35 @@ variable "installer_script_folder" {
+@@ -83,99 +38,35 @@ variable "installer_script_folder" {
    default = "/imagegeneration/installers"
  }
  
 -variable "install_password" {
 -  type  = string
 -  default = ""
-+source "lxd" "build-vhd" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "location" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_LOCATION")}"
@@ -245,8 +242,12 @@ index 45aa217f..47b396f3 100644
 -variable "private_virtual_network_with_public_ip" {
 -  type    = bool
 -  default = false
--}
--
++source "lxd" "build-vhd" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "managed_image_resource_group_name" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_GROUP")}"
@@ -346,7 +347,7 @@ index 45aa217f..47b396f3 100644
    }
  
    provisioner "shell" {
-@@ -199,12 +94,12 @@ build {
+@@ -199,12 +90,12 @@ build {
    }
  
    provisioner "file" {
@@ -361,7 +362,7 @@ index 45aa217f..47b396f3 100644
      source      = "${path.root}/../scripts/build"
    }
  
-@@ -344,6 +239,13 @@ build {
+@@ -344,6 +235,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -375,7 +376,7 @@ index 45aa217f..47b396f3 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -352,10 +254,17 @@ build {
+@@ -352,10 +250,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -394,7 +395,7 @@ index 45aa217f..47b396f3 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -408,9 +317,4 @@ build {
+@@ -408,9 +313,4 @@ build {
      inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2204.conf /etc/vsts/machine_instance.conf"]
    }
  
