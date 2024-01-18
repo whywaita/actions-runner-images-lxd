@@ -47,7 +47,7 @@ index 7fd49160..e2681c32 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index 7a35f657..b2d08bc0 100644
+index 7a35f657..c06817a4 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -244,38 +244,35 @@ index 7a35f657..b2d08bc0 100644
      source      = "${path.root}/../scripts/build"
    }
  
-@@ -232,6 +127,18 @@ build {
+@@ -232,6 +127,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2004.json"
    }
  
 +  provisioner "shell" {
-+    environment_vars = [
-+        "HELPER_SCRIPTS={{user `helper_script_folder`}}",
-+        "DEBIAN_FRONTEND=noninteractive",
-+        "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
-+    ]
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
-+      "sudo chmod 777 ${INSTALLER_SCRIPT_FOLDER}/toolset.json"
++      "sudo chmod 777 ${var.installer_script_folder}/toolset.json"
 +    ]
 +  }
 +
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -347,6 +254,11 @@ build {
+@@ -347,6 +249,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/install-docker-compose.sh", "${path.root}/../scripts/build/install-docker.sh"]
    }
  
 +  provisioner "shell" {
 +    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    scripts          = ["gpasswd -a runner docker"]
++    inline           = [
++      "gpasswd -a runner docker"
++    ]
 +  }
 +
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -361,7 +273,7 @@ build {
+@@ -361,7 +270,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -284,7 +281,7 @@ index 7a35f657..b2d08bc0 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -426,7 +338,6 @@ build {
+@@ -426,7 +335,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
