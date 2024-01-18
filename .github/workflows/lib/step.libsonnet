@@ -25,7 +25,7 @@ function(packer_def_path) {
         ls /usr/share/ | grep -vE "dpkg|debconf|dbus" | xargs -I%% sudo rm -rf /usr/share/%%
 
         sudo mkdir -p /opt
-        sudo 777 /opt
+        sudo chmod 777 /opt
       |||,
     },
     { uses: 'hashicorp/setup-packer@main' },
