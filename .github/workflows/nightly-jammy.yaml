@@ -16,9 +16,6 @@
                "uses": "whywaita/setup-lxd@v1"
             },
             {
-               "uses": "hashicorp/setup-packer@main"
-            },
-            {
                "name": "Setup distrobuilder",
                "run": "sudo snap install distrobuilder --classic",
                "shell": "bash"
@@ -27,6 +24,9 @@
                "name": "Delete unused file",
                "run": "sudo rm -rf /opt/\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n",
                "shell": "bash"
+            },
+            {
+               "uses": "hashicorp/setup-packer@main"
             },
             {
                "name": "Display storage information",

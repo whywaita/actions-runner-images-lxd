@@ -4,7 +4,6 @@ function(packer_def_path) {
     { uses: 'whywaita/workflow-telemetry-action@add-disk-space' },
     { uses: 'Kesin11/actions-timeline@v1' },
     { uses: 'whywaita/setup-lxd@v1' },
-    { uses: 'hashicorp/setup-packer@main' },
     {
       name: 'Setup distrobuilder',
       shell: 'bash',
@@ -26,6 +25,7 @@ function(packer_def_path) {
         ls /usr/share/ | grep -vE "dpkg|debconf|dbus" | xargs -I%% sudo rm -rf /usr/share/%%
       |||,
     },
+    { uses: 'hashicorp/setup-packer@main' },
     {
       name: 'Display storage information',
       shell: 'bash',
