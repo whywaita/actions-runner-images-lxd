@@ -23,6 +23,9 @@ function(packer_def_path) {
         sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg" |  xargs -I%% sudo rm -rf %%
         # ignore /usr/share/dpkg
         ls /usr/share/ | grep -vE "dpkg|debconf|dbus" | xargs -I%% sudo rm -rf /usr/share/%%
+
+        sudo mkdir -p /opt
+        sudo 777 /opt
       |||,
     },
     { uses: 'hashicorp/setup-packer@main' },
