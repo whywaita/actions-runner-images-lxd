@@ -20,11 +20,12 @@ function(packer_def_path) {
       name: 'Setup packer-plugin-lxd',
       shell: 'bash',
       run: |||
-        wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-        unzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-        mv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd
+        export LXD_PACKER_VERSION=v1.0.2
+        wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/${LXD_PACKER_VERSION}/packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
+        unzip packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
+        mv packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64 /tmp/packer-plugin-lxd
         chmod +x /tmp/packer-plugin-lxd
-        rm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
+        rm -f packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
       |||,
     },
     {
