@@ -1,9 +1,9 @@
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 1725f35b..996f0d65 100644
+index 6db18e0a..f889f049 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
-@@ -19,9 +19,9 @@ mkdir -p /etc/skel/.config/configstore
- echo 'XDG_CONFIG_HOME=$HOME/.config' | tee -a /etc/environment
+@@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
+ set_etc_environment_variable "XDG_CONFIG_HOME" '$HOME/.config'
  
  # Change waagent entries to use /mnt for swapfile
 -sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
@@ -16,12 +16,12 @@ index 1725f35b..996f0d65 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index 30f38d9b..4465e94e 100644
+index 591a4172..cb76e2b3 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-@@ -50,10 +50,10 @@ for version in ${DOTNET_VERSIONS[@]}; do
-     download_with_retries "${release_url}" "." "${version}.json"
-     releases=$(cat "./${version}.json")
+@@ -65,10 +65,10 @@ for version in ${dotnet_versions[@]}; do
+     release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
+     releases=$(cat "$(download_with_retry "$release_url")")
      if [[ $version == "6.0" ]]; then
 -        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r 'first(.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
 +        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
@@ -31,152 +31,37 @@ index 30f38d9b..4465e94e 100644
 +        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
 +        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
      fi
-     rm ./${version}.json
  done
+ 
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index 8f94e469..2c271d68 100644
+index 7fd49160..e2681c32 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
-@@ -22,6 +22,8 @@ setEtcEnvironmentVariable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
+@@ -22,6 +22,8 @@ set_etc_environment_variable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
  echo "Validate the installation reloading /etc/environment"
- reloadEtcEnvironment
+ reload_etc_environment
  
 +cd ${HOME}
 +
  gfortran=$(brew --prefix)/bin/gfortran
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
-diff --git a/images/ubuntu/templates/ubuntu-20.04.json b/images/ubuntu/templates/ubuntu-20.04.json
-index e1d36d39..caea6d68 100644
---- a/images/ubuntu/templates/ubuntu-20.04.json
-+++ b/images/ubuntu/templates/ubuntu-20.04.json
-@@ -30,36 +30,32 @@
-     ],
-     "builders": [
-         {
--            "type": "azure-arm",
--            "client_id": "{{user `client_id`}}",
--            "client_secret": "{{user `client_secret`}}",
--            "client_cert_path": "{{user `client_cert_path`}}",
--            "subscription_id": "{{user `subscription_id`}}",
--            "tenant_id": "{{user `tenant_id`}}",
--            "location": "{{user `location`}}",
--            "vm_size": "{{user `vm_size`}}",
--            "managed_image_name": "{{user `managed_image_name`}}",
--            "managed_image_resource_group_name": "{{user `managed_image_resource_group_name`}}",
--            "build_resource_group_name": "{{user `build_resource_group_name`}}",
--            "temp_resource_group_name": "{{user `temp_resource_group_name`}}",
--            "virtual_network_name": "{{user `virtual_network_name`}}",
--            "virtual_network_resource_group_name": "{{user `virtual_network_resource_group_name`}}",
--            "virtual_network_subnet_name": "{{user `virtual_network_subnet_name`}}",
--            "private_virtual_network_with_public_ip": "{{user `private_virtual_network_with_public_ip`}}",
--            "allowed_inbound_ip_addresses": "{{user `allowed_inbound_ip_addresses`}}",
--            "os_type": "Linux",
--            "image_publisher": "canonical",
--            "image_offer": "0001-com-ubuntu-server-focal",
--            "image_sku": "20_04-lts",
--            "os_disk_size_gb": "86"
-+          "type": "lxd",
-+          "image": "ubuntu:focal",
-+          "container_name": "packer-lxd",
-+          "skip_publish": true
-         }
-     ],
-     "provisioners": [
-+        {
-+            "type": "shell",
-+            "inline": [
-+                "apt-get update -y; apt-get install whois",
-+                "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+                "gpasswd -a runner sudo",
-+                "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+            ],
-+            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+        },
-         {
-             "type": "shell",
-             "inline": [
-                 "mkdir {{user `image_folder`}}",
--                "chmod 777 {{user `image_folder`}}"
-+                "chmod 755 {{user `image_folder`}}",
-+                "mkdir {{user `installer_script_folder`}}",
-+                "chmod 755 {{user `installer_script_folder`}}",
-+                "mkdir {{user `helper_script_folder`}}",
-+                "chmod 755 {{user `helper_script_folder`}}"
-             ],
-             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-@@ -88,12 +84,12 @@
-         {
-             "type": "file",
-             "source": "{{template_dir}}/../scripts/helpers",
--            "destination": "{{user `helper_script_folder`}}"
-+            "destination": "{{user `image_folder`}}"
-         },
-         {
-             "type": "file",
-             "source": "{{template_dir}}/../scripts/build",
--            "destination": "{{user `installer_script_folder`}}"
-+            "destination": "{{user `image_folder`}}"
-         },
-         {
-             "type": "file",
-@@ -268,6 +264,17 @@
-             ],
-             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-+        {
-+            "type": "shell",
-+            "environment_vars": [
-+                "HELPER_SCRIPTS={{user `helper_script_folder`}}",
-+                "DEBIAN_FRONTEND=noninteractive",
-+                "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
-+            ],
-+            "inline": [
-+                "sudo chmod 777 ${INSTALLER_SCRIPT_FOLDER}/toolset.json"
-+            ]
-+        },
-         {
-             "type": "shell",
-             "scripts": [
-@@ -291,6 +298,13 @@
-             ],
-             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-+        {
-+            "type": "shell",
-+            "inline": [
-+                "gpasswd -a runner docker"
-+            ],
-+            "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+        },
-         {
-             "type": "shell",
-             "scripts": [
-@@ -301,7 +315,7 @@
-                 "DEBIAN_FRONTEND=noninteractive",
-                 "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
-             ],
--            "execute_command": "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
-+            "execute_command": "sudo -u runner /bin/sh -c '{{ .Vars }} {{ .Path }}'"
-         },
-         {
-             "type": "shell",
-@@ -386,8 +400,7 @@
-         {
-             "type": "shell",
-             "inline": [
--                "sleep 30",
--                "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
-+                "sleep 30"
-             ],
-             "execute_command": "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-         }
-diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 45aa217f..cd267513 100644
---- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-+++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-@@ -1,48 +1,3 @@
+diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
+index 7a35f657..40efda40 100644
+--- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
++++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
+@@ -1,47 +1,12 @@
+ packer {
+   required_plugins {
+     azure = {
+-      source  = "github.com/hashicorp/azure"
+-      version = "1.4.5"
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
+     }
+   }
+ }
+ 
 -locals {
 -  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
 -}
@@ -196,9 +81,9 @@ index 45aa217f..cd267513 100644
 -  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
 -}
 -
--variable "managed_image_name" {
+-variable "client_cert_path" {
 -  type    = string
--  default = ""
+-  default = "${env("ARM_CLIENT_CERT_PATH")}"
 -}
 -
 -variable "client_id" {
@@ -212,26 +97,17 @@ index 45aa217f..cd267513 100644
 -  sensitive = true
 -}
 -
--variable "client_cert_path" {
--  type      = string
--  default   = "${env("ARM_CLIENT_CERT_PATH")}"
--}
--
--variable "commit_url" {
--  type      = string
--  default   = ""
--}
--
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -83,99 +38,35 @@ variable "installer_script_folder" {
+@@ -82,105 +47,35 @@ variable "installer_script_folder" {
    default = "/imagegeneration/installers"
  }
  
 -variable "install_password" {
--  type  = string
--  default = ""
+-  type      = string
+-  default   = ""
+-  sensitive = true
 -}
 -
 -variable "location" {
@@ -239,18 +115,19 @@ index 45aa217f..cd267513 100644
 -  default = "${env("ARM_RESOURCE_LOCATION")}"
 -}
 -
--variable "private_virtual_network_with_public_ip" {
--  type    = bool
--  default = false
-+source "lxd" "build-vhd" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-variable "managed_image_name" {
+-  type    = string
+-  default = ""
+-}
+-
 -variable "managed_image_resource_group_name" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_GROUP")}"
+-}
+-
+-variable "private_virtual_network_with_public_ip" {
+-  type    = bool
+-  default = false
 -}
 -
 -variable "subscription_id" {
@@ -281,30 +158,34 @@ index 45aa217f..cd267513 100644
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:focal"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "vm_size" {
 -  type    = string
 -  default = "Standard_D4s_v4"
 -}
 +build {
-+  sources = ["source.lxd.build-vhd"]
++  sources = ["source.lxd.build_image"]
  
 -source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
+-  client_cert_path                       = "${var.client_cert_path}"
 -  client_id                              = "${var.client_id}"
 -  client_secret                          = "${var.client_secret}"
--  client_cert_path                       = "${var.client_cert_path}"
--  image_offer                            = "0001-com-ubuntu-server-jammy"
+-  image_offer                            = "0001-com-ubuntu-server-focal"
 -  image_publisher                        = "canonical"
--  image_sku                              = "22_04-lts"
+-  image_sku                              = "20_04-lts"
 -  location                               = "${var.location}"
+-  managed_image_name                     = "${local.managed_image_name}"
+-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
 -  os_disk_size_gb                        = "86"
 -  os_type                                = "Linux"
 -  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
--  managed_image_name                     = "${local.managed_image_name}"
--  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
 -  subscription_id                        = "${var.subscription_id}"
 -  temp_resource_group_name               = "${var.temp_resource_group_name}"
 -  tenant_id                              = "${var.tenant_id}"
@@ -347,7 +228,7 @@ index 45aa217f..cd267513 100644
    }
  
    provisioner "shell" {
-@@ -199,12 +90,12 @@ build {
+@@ -204,12 +99,12 @@ build {
    }
  
    provisioner "file" {
@@ -362,7 +243,253 @@ index 45aa217f..cd267513 100644
      source      = "${path.root}/../scripts/build"
    }
  
-@@ -344,6 +235,13 @@ build {
+@@ -232,6 +127,18 @@ build {
+     source      = "${path.root}/../toolsets/toolset-2004.json"
+   }
+ 
++  provisioner "shell" {
++   "environment_vars": [
++       "HELPER_SCRIPTS={{user `helper_script_folder`}}",
++       "DEBIAN_FRONTEND=noninteractive",
++       "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
++   ],
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "sudo chmod 777 ${INSTALLER_SCRIPT_FOLDER}/toolset.json"
++    ]
++  }
++
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = [
+@@ -347,6 +254,11 @@ build {
+     scripts          = ["${path.root}/../scripts/build/install-docker-compose.sh", "${path.root}/../scripts/build/install-docker.sh"]
+   }
+ 
++  provisioner "shell" {
++    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    scripts          = ["gpasswd -a runner docker"]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
+@@ -361,7 +273,7 @@ build {
+ 
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+-    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
++    execute_command  = "sudo -u runner /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
+   }
+ 
+@@ -426,7 +338,6 @@ build {
+ 
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
++    inline          = ["export HISTSIZE=0 && sync"]
+   }
+-
+ }
+diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
+index 25fce43f..06edb5e0 100644
+--- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
++++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
+@@ -1,47 +1,12 @@
+ packer {
+   required_plugins {
+     azure = {
+-      source  = "github.com/hashicorp/azure"
+-      version = "1.4.5"
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
+     }
+   }
+ }
+ 
+-locals {
+-  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
+-}
+-
+-variable "allowed_inbound_ip_addresses" {
+-  type    = list(string)
+-  default = []
+-}
+-
+-variable "azure_tags" {
+-  type    = map(string)
+-  default = {}
+-}
+-
+-variable "build_resource_group_name" {
+-  type    = string
+-  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
+-}
+-
+-variable "client_cert_path" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_CERT_PATH")}"
+-}
+-
+-variable "client_id" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_ID")}"
+-}
+-
+-variable "client_secret" {
+-  type      = string
+-  default   = "${env("ARM_CLIENT_SECRET")}"
+-  sensitive = true
+-}
+-
+ variable "dockerhub_login" {
+   type    = string
+   default = "${env("DOCKERHUB_LOGIN")}"
+@@ -82,105 +47,35 @@ variable "installer_script_folder" {
+   default = "/imagegeneration/installers"
+ }
+ 
+-variable "install_password" {
+-  type      = string
+-  default   = ""
+-  sensitive = true
+-}
+-
+-variable "location" {
+-  type    = string
+-  default = "${env("ARM_RESOURCE_LOCATION")}"
+-}
+-
+-variable "managed_image_name" {
+-  type    = string
+-  default = ""
+-}
+-
+-variable "managed_image_resource_group_name" {
+-  type    = string
+-  default = "${env("ARM_RESOURCE_GROUP")}"
+-}
+-
+-variable "private_virtual_network_with_public_ip" {
+-  type    = bool
+-  default = false
+-}
+-
+-variable "subscription_id" {
+-  type    = string
+-  default = "${env("ARM_SUBSCRIPTION_ID")}"
+-}
+-
+-variable "temp_resource_group_name" {
+-  type    = string
+-  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
+-}
+-
+-variable "tenant_id" {
+-  type    = string
+-  default = "${env("ARM_TENANT_ID")}"
+-}
+-
+-variable "virtual_network_name" {
+-  type    = string
+-  default = "${env("VNET_NAME")}"
+-}
+-
+-variable "virtual_network_resource_group_name" {
+-  type    = string
+-  default = "${env("VNET_RESOURCE_GROUP")}"
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
+-variable "virtual_network_subnet_name" {
+-  type    = string
+-  default = "${env("VNET_SUBNET")}"
+-}
+-
+-variable "vm_size" {
+-  type    = string
+-  default = "Standard_D4s_v4"
+-}
++build {
++  sources = ["source.lxd.build_image"]
+ 
+-source "azure-arm" "build_image" {
+-  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
+-  build_resource_group_name              = "${var.build_resource_group_name}"
+-  client_cert_path                       = "${var.client_cert_path}"
+-  client_id                              = "${var.client_id}"
+-  client_secret                          = "${var.client_secret}"
+-  image_offer                            = "0001-com-ubuntu-server-jammy"
+-  image_publisher                        = "canonical"
+-  image_sku                              = "22_04-lts"
+-  location                               = "${var.location}"
+-  managed_image_name                     = "${local.managed_image_name}"
+-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
+-  os_disk_size_gb                        = "86"
+-  os_type                                = "Linux"
+-  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
+-  subscription_id                        = "${var.subscription_id}"
+-  temp_resource_group_name               = "${var.temp_resource_group_name}"
+-  tenant_id                              = "${var.tenant_id}"
+-  virtual_network_name                   = "${var.virtual_network_name}"
+-  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
+-  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
+-  vm_size                                = "${var.vm_size}"
+-
+-  dynamic "azure_tag" {
+-    for_each = var.azure_tags
+-    content {
+-      name = azure_tag.key
+-      value = azure_tag.value
+-    }
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
+   }
+-}
+-
+-build {
+-  sources = ["source.azure-arm.build_image"]
+ 
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+-    inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
++    inline          = [
++      "mkdir ${var.image_folder}",
++      "chmod 755 ${var.image_folder}",
++      "mkdir ${var.installer_script_folder}",
++      "chmod 755 ${var.installer_script_folder}",
++      "mkdir ${var.helper_script_folder}",
++      "chmod 755 ${var.helper_script_folder}"
++    ]
+   }
+ 
+   provisioner "shell" {
+@@ -204,12 +99,12 @@ build {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.helper_script_folder}"
++    destination = "${var.image_folder}"
+     source      = "${path.root}/../scripts/helpers"
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.installer_script_folder}"
++    destination = "${var.image_folder}"
+     source      = "${path.root}/../scripts/build"
+   }
+ 
+@@ -349,6 +244,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -376,7 +503,7 @@ index 45aa217f..cd267513 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -352,10 +250,17 @@ build {
+@@ -357,10 +259,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -395,13 +522,12 @@ index 45aa217f..cd267513 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -408,9 +313,4 @@ build {
-     inline          = ["mkdir -p /etc/vsts", "cp /tmp/ubuntu2204.conf /etc/vsts/machine_instance.conf"]
-   }
+@@ -415,7 +324,6 @@ build {
  
--  provisioner "shell" {
--    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 -    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
--  }
++    inline          = ["export HISTSIZE=0 && sync"]
+   }
 -
  }
