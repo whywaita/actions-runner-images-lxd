@@ -16,9 +16,7 @@
                "uses": "whywaita/setup-lxd@v1"
             },
             {
-               "name": "Setup packer",
-               "run": "sudo apt-get install -y wget unzip\ncurl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip\nunzip packer_1.7.0_linux_amd64.zip\nmv ./packer /tmp/packer\nchmod +x /tmp/packer\nrm -rf packer_1.7.0_linux_amd64.zip\n",
-               "shell": "bash"
+               "uses": "hashicorp/setup-packer@main"
             },
             {
                "name": "Setup packer-plugin-lxd",
