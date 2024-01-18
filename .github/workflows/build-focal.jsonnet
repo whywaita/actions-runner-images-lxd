@@ -1,4 +1,4 @@
-local steps_focal = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-20.04.json');
+local steps_focal = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-20.04.pkr.hcl');
 
 {
   name: 'Build image - focal',
