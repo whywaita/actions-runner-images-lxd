@@ -69,7 +69,7 @@ function(packer_def_path) {
     {
       name: 'packer init',
       shell: 'bash',
-      run: 'packer init',
+      run: std.format('packer init %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
     },
     {

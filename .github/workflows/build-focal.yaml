@@ -52,7 +52,7 @@
             },
             {
                "name": "packer init",
-               "run": "packer init",
+               "run": "packer init images/ubuntu/templates/ubuntu-20.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
