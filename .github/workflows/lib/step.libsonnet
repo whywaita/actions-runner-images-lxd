@@ -6,18 +6,6 @@ function(packer_def_path) {
     { uses: 'whywaita/setup-lxd@v1' },
     { uses: 'hashicorp/setup-packer@main' },
     {
-      name: 'Setup packer-plugin-lxd',
-      shell: 'bash',
-      run: |||
-        export LXD_PACKER_VERSION=v1.0.2
-        wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/${LXD_PACKER_VERSION}/packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
-        unzip packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
-        mv packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64 /tmp/packer-plugin-lxd
-        chmod +x /tmp/packer-plugin-lxd
-        rm -f packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip
-      |||,
-    },
-    {
       name: 'Setup distrobuilder',
       shell: 'bash',
       run: 'sudo snap install distrobuilder --classic',
@@ -76,15 +64,21 @@ function(packer_def_path) {
       'working-directory': '${{ env.dir }}',
     },
     {
+      name: 'packer init',
+      shell: 'bash',
+      run: 'packer init',
+      'working-directory': '${{ env.dir }}',
+    },
+    {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('/tmp/packer validate -syntax-only %s', packer_def_path),
+      run: std.format('packer validate -syntax-only %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('PATH=$PATH:/tmp /tmp/packer build -on-error=abort %s', packer_def_path),
+      run: std.format('packer build -on-error=abort %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,

@@ -19,11 +19,6 @@
                "uses": "hashicorp/setup-packer@main"
             },
             {
-               "name": "Setup packer-plugin-lxd",
-               "run": "export LXD_PACKER_VERSION=v1.0.2\nwget https://github.com/hashicorp/packer-plugin-lxd/releases/download/${LXD_PACKER_VERSION}/packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip\nunzip packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip\nmv packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64 /tmp/packer-plugin-lxd\nchmod +x /tmp/packer-plugin-lxd\nrm -f packer-plugin-lxd_${LXD_PACKER_VERSION}_x5.0_linux_amd64.zip\n",
-               "shell": "bash"
-            },
-            {
                "name": "Setup distrobuilder",
                "run": "sudo snap install distrobuilder --classic",
                "shell": "bash"
@@ -56,8 +51,14 @@
                "working-directory": "${{ env.dir }}"
             },
             {
+               "name": "packer init",
+               "run": "packer init",
+               "shell": "bash",
+               "working-directory": "${{ env.dir }}"
+            },
+            {
                "name": "packer validate packer.json",
-               "run": "/tmp/packer validate -syntax-only images/ubuntu/templates/ubuntu-20.04.pkr.hcl",
+               "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-20.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -66,7 +67,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "PATH=$PATH:/tmp /tmp/packer build -on-error=abort images/ubuntu/templates/ubuntu-20.04.pkr.hcl",
+               "run": "packer build -on-error=abort images/ubuntu/templates/ubuntu-20.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
