@@ -47,7 +47,7 @@ index 7fd49160..e2681c32 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index 7a35f657..3cd891b8 100644
+index 7a35f657..6642c6fa 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -249,7 +249,7 @@ index 7a35f657..3cd891b8 100644
    }
  
 +  provisioner "shell" {
-+   "environment_vars": [
++   environment_vars: [
 +       "HELPER_SCRIPTS={{user `helper_script_folder`}}",
 +       "DEBIAN_FRONTEND=noninteractive",
 +       "INSTALLER_SCRIPT_FOLDER={{user `installer_script_folder`}}"
