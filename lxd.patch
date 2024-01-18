@@ -47,15 +47,16 @@ index 7fd49160..e2681c32 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index 7a35f657..40efda40 100644
+index 7a35f657..3cd891b8 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
  packer {
    required_plugins {
-     azure = {
+-    azure = {
 -      source  = "github.com/hashicorp/azure"
 -      version = "1.4.5"
++    lxd = {
 +      source  = "github.com/hashicorp/lxd"
 +      version = "1.0.2"
      }
@@ -293,15 +294,16 @@ index 7a35f657..40efda40 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 25fce43f..06edb5e0 100644
+index 25fce43f..263284b1 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
  packer {
    required_plugins {
-     azure = {
+-    azure = {
 -      source  = "github.com/hashicorp/azure"
 -      version = "1.4.5"
++    lxd = {
 +      source  = "github.com/hashicorp/lxd"
 +      version = "1.0.2"
      }
