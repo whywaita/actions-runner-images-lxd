@@ -301,7 +301,7 @@ index 7a35f657..299763a6 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 25fce43f..eb0429f3 100644
+index 25fce43f..176f676a 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -403,8 +403,12 @@ index 25fce43f..eb0429f3 100644
 -variable "virtual_network_name" {
 -  type    = string
 -  default = "${env("VNET_NAME")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
@@ -413,12 +417,8 @@ index 25fce43f..eb0429f3 100644
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "vm_size" {
 -  type    = string
 -  default = "Standard_D4s_v4"
@@ -483,19 +483,7 @@ index 25fce43f..eb0429f3 100644
    }
  
    provisioner "shell" {
-@@ -204,22 +99,28 @@ build {
-   }
- 
-   provisioner "file" {
--    destination = "${var.helper_script_folder}"
-+    destination = "${var.image_folder}"
-     source      = "${path.root}/../scripts/helpers"
-   }
- 
-   provisioner "file" {
--    destination = "${var.installer_script_folder}"
-+    destination = "${var.image_folder}"
-     source      = "${path.root}/../scripts/build"
+@@ -214,12 +109,18 @@ build {
    }
  
    provisioner "file" {
