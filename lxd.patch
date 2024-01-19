@@ -47,7 +47,7 @@ index 7fd49160..e2681c32 100644
  # Remove gfortran symlink, not to conflict with system gfortran
  if [[ -e $gfortran ]]; then
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index 7a35f657..c06817a4 100644
+index 7a35f657..d8b829a9 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -144,12 +144,8 @@ index 7a35f657..c06817a4 100644
 -variable "tenant_id" {
 -  type    = string
 -  default = "${env("ARM_TENANT_ID")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:focal"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "virtual_network_name" {
 -  type    = string
 -  default = "${env("VNET_NAME")}"
@@ -158,8 +154,12 @@ index 7a35f657..c06817a4 100644
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:focal"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
@@ -229,7 +229,7 @@ index 7a35f657..c06817a4 100644
    }
  
    provisioner "shell" {
-@@ -204,12 +99,12 @@ build {
+@@ -204,17 +99,17 @@ build {
    }
  
    provisioner "file" {
@@ -244,6 +244,12 @@ index 7a35f657..c06817a4 100644
      source      = "${path.root}/../scripts/build"
    }
  
+   provisioner "file" {
+-    destination = "${var.image_folder}"
++    destination = "${var.image_folder}/"
+     sources     = [
+       "${path.root}/../assets/post-gen",
+       "${path.root}/../scripts/tests",
 @@ -232,6 +127,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2004.json"
    }
@@ -291,7 +297,7 @@ index 7a35f657..c06817a4 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 25fce43f..263284b1 100644
+index 25fce43f..897829a8 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -368,8 +374,12 @@ index 25fce43f..263284b1 100644
 -variable "managed_image_resource_group_name" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_GROUP")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "private_virtual_network_with_public_ip" {
 -  type    = bool
 -  default = false
@@ -398,12 +408,8 @@ index 25fce43f..263284b1 100644
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
@@ -473,7 +479,7 @@ index 25fce43f..263284b1 100644
    }
  
    provisioner "shell" {
-@@ -204,12 +99,12 @@ build {
+@@ -204,17 +99,17 @@ build {
    }
  
    provisioner "file" {
@@ -488,6 +494,12 @@ index 25fce43f..263284b1 100644
      source      = "${path.root}/../scripts/build"
    }
  
+   provisioner "file" {
+-    destination = "${var.image_folder}"
++    destination = "${var.image_folder}/"
+     sources     = [
+       "${path.root}/../assets/post-gen",
+       "${path.root}/../scripts/tests",
 @@ -349,6 +244,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
