@@ -99,6 +99,11 @@
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }
+            },
+            {
+               "if": "failure()",
+               "name": "tmate",
+               "uses": "mxschmitt/action-tmate@v3"
             }
          ]
       }
