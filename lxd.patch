@@ -47,18 +47,24 @@ index 591a4172..cb76e2b3 100644
  done
  
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index 7fd49160..e2681c32 100644
+index 7fd49160..93993a57 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
-@@ -22,6 +22,8 @@ set_etc_environment_variable HOMEBREW_CLEANUP_PERIODIC_FULL_DAYS 3650
- echo "Validate the installation reloading /etc/environment"
- reload_etc_environment
+@@ -9,6 +9,8 @@
+ source $HELPER_SCRIPTS/etc-environment.sh
+ source $HELPER_SCRIPTS/install.sh
  
 +cd ${HOME}
 +
- gfortran=$(brew --prefix)/bin/gfortran
- # Remove gfortran symlink, not to conflict with system gfortran
- if [[ -e $gfortran ]]; then
+ # Install the Homebrew on Linux
+ /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
+ 
+@@ -28,4 +30,4 @@ if [[ -e $gfortran ]]; then
+     rm $gfortran
+ fi
+ 
+-invoke_tests "Tools" "Homebrew"
++sudo -E invoke_tests "Tools" "Homebrew"
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 index 7a35f657..299763a6 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
