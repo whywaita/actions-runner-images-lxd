@@ -15,6 +15,17 @@ index 6db18e0a..f889f049 100644
  
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
+diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubuntu/scripts/build/install-container-tools.sh
+index f17ce2f0..09ce2433 100644
+--- a/images/ubuntu/scripts/build/install-container-tools.sh
++++ b/images/ubuntu/scripts/build/install-container-tools.sh
+@@ -42,4 +42,6 @@ if is_ubuntu20; then
+     echo "containers $REPO_URL" >> $HELPER_SCRIPTS/apt-sources.txt
+ fi
+ 
++sed -i 's|# mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|g' /etc/containers/storage.conf
++
+ invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 index 591a4172..cb76e2b3 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
