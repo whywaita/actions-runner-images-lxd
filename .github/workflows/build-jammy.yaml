@@ -16,24 +16,17 @@
                "uses": "whywaita/setup-lxd@v1"
             },
             {
-               "name": "Setup packer",
-               "run": "sudo apt-get install -y wget unzip\ncurl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip\nunzip packer_1.7.0_linux_amd64.zip\nmv ./packer /tmp/packer\nchmod +x /tmp/packer\nrm -rf packer_1.7.0_linux_amd64.zip\n",
-               "shell": "bash"
-            },
-            {
-               "name": "Setup packer-plugin-lxd",
-               "run": "wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\nunzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\nmv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd\nchmod +x /tmp/packer-plugin-lxd\nrm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip\n",
-               "shell": "bash"
-            },
-            {
                "name": "Setup distrobuilder",
                "run": "sudo snap install distrobuilder --classic",
                "shell": "bash"
             },
             {
                "name": "Delete unused file",
-               "run": "sudo rm -rf /opt/\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n",
+               "run": "sudo rm -rf /opt/\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n\nsudo mkdir -p /opt\nsudo chmod 777 /opt\n",
                "shell": "bash"
+            },
+            {
+               "uses": "hashicorp/setup-packer@main"
             },
             {
                "name": "Display storage information",
@@ -58,8 +51,14 @@
                "working-directory": "${{ env.dir }}"
             },
             {
+               "name": "packer init",
+               "run": "packer init images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "shell": "bash",
+               "working-directory": "${{ env.dir }}"
+            },
+            {
                "name": "packer validate packer.json",
-               "run": "/tmp/packer validate -syntax-only images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -68,7 +67,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "PATH=$PATH:/tmp /tmp/packer build -on-error=abort images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "run": "packer build -on-error=abort images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -100,6 +99,11 @@
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }
+            },
+            {
+               "if": "failure()",
+               "name": "tmate",
+               "uses": "mxschmitt/action-tmate@v3"
             }
          ]
       }

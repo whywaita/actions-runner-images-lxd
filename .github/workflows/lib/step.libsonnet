@@ -5,29 +5,6 @@ function(packer_def_path) {
     { uses: 'Kesin11/actions-timeline@v1' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
-      name: 'Setup packer',
-      shell: 'bash',
-      run: |||
-        sudo apt-get install -y wget unzip
-        curl -L -O https://releases.hashicorp.com/packer/1.7.0/packer_1.7.0_linux_amd64.zip
-        unzip packer_1.7.0_linux_amd64.zip
-        mv ./packer /tmp/packer
-        chmod +x /tmp/packer
-        rm -rf packer_1.7.0_linux_amd64.zip
-      |||,
-    },
-    {
-      name: 'Setup packer-plugin-lxd',
-      shell: 'bash',
-      run: |||
-        wget https://github.com/hashicorp/packer-plugin-lxd/releases/download/v1.0.1/packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-        unzip packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-        mv packer-plugin-lxd_v1.0.1_x5.0_linux_amd64 /tmp/packer-plugin-lxd
-        chmod +x /tmp/packer-plugin-lxd
-        rm -f packer-plugin-lxd_v1.0.1_x5.0_linux_amd64.zip
-      |||,
-    },
-    {
       name: 'Setup distrobuilder',
       shell: 'bash',
       run: 'sudo snap install distrobuilder --classic',
@@ -46,8 +23,12 @@ function(packer_def_path) {
         sudo ls /var/**/** | grep ":" | tr -d ":" | grep -Ev "/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg" |  xargs -I%% sudo rm -rf %%
         # ignore /usr/share/dpkg
         ls /usr/share/ | grep -vE "dpkg|debconf|dbus" | xargs -I%% sudo rm -rf /usr/share/%%
+
+        sudo mkdir -p /opt
+        sudo chmod 777 /opt
       |||,
     },
+    { uses: 'hashicorp/setup-packer@main' },
     {
       name: 'Display storage information',
       shell: 'bash',
@@ -86,15 +67,21 @@ function(packer_def_path) {
       'working-directory': '${{ env.dir }}',
     },
     {
+      name: 'packer init',
+      shell: 'bash',
+      run: std.format('packer init %s', packer_def_path),
+      'working-directory': '${{ env.dir }}',
+    },
+    {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('/tmp/packer validate -syntax-only %s', packer_def_path),
+      run: std.format('packer validate -syntax-only %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('PATH=$PATH:/tmp /tmp/packer build -on-error=abort %s', packer_def_path),
+      run: std.format('packer build -on-error=abort %s', packer_def_path),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,
