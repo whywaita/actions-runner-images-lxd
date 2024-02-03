@@ -66,7 +66,7 @@ index 7fd49160..93993a57 100644
 -invoke_tests "Tools" "Homebrew"
 +sudo -E invoke_tests "Tools" "Homebrew"
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index 7a35f657..f047ae41 100644
+index fd3a295b..25ce1f08 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -120,16 +120,10 @@ index 7a35f657..f047ae41 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -82,105 +47,35 @@ variable "installer_script_folder" {
-   default = "/imagegeneration/installers"
+@@ -88,99 +53,36 @@ variable "install_password" {
+   sensitive = true
  }
  
--variable "install_password" {
--  type      = string
--  default   = ""
--  sensitive = true
--}
--
 -variable "location" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_LOCATION")}"
@@ -163,12 +157,8 @@ index 7a35f657..f047ae41 100644
 -variable "tenant_id" {
 -  type    = string
 -  default = "${env("ARM_TENANT_ID")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:focal"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "virtual_network_name" {
 -  type    = string
 -  default = "${env("VNET_NAME")}"
@@ -182,8 +172,12 @@ index 7a35f657..f047ae41 100644
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:focal"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "vm_size" {
 -  type    = string
 -  default = "Standard_D4s_v4"
@@ -203,7 +197,7 @@ index 7a35f657..f047ae41 100644
 -  location                               = "${var.location}"
 -  managed_image_name                     = "${local.managed_image_name}"
 -  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
--  os_disk_size_gb                        = "86"
+-  os_disk_size_gb                        = "75"
 -  os_type                                = "Linux"
 -  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
 -  subscription_id                        = "${var.subscription_id}"
@@ -245,10 +239,11 @@ index 7a35f657..f047ae41 100644
 +      "mkdir ${var.helper_script_folder}",
 +      "chmod 755 ${var.helper_script_folder}"
 +    ]
++
    }
  
    provisioner "shell" {
-@@ -214,16 +109,22 @@ build {
+@@ -214,16 +116,22 @@ build {
    }
  
    provisioner "file" {
@@ -278,7 +273,7 @@ index 7a35f657..f047ae41 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -232,6 +133,13 @@ build {
+@@ -232,6 +140,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2004.json"
    }
  
@@ -292,7 +287,7 @@ index 7a35f657..f047ae41 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -347,6 +255,13 @@ build {
+@@ -347,6 +262,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/install-docker-compose.sh", "${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -306,7 +301,7 @@ index 7a35f657..f047ae41 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -361,7 +276,7 @@ build {
+@@ -361,7 +283,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -315,7 +310,7 @@ index 7a35f657..f047ae41 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -384,29 +299,29 @@ build {
+@@ -384,29 +306,29 @@ build {
      start_retry_timeout = "10m"
    }
  
@@ -368,7 +363,7 @@ index 7a35f657..f047ae41 100644
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-@@ -426,7 +341,6 @@ build {
+@@ -426,7 +348,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -378,7 +373,7 @@ index 7a35f657..f047ae41 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 25fce43f..8dbc41d6 100644
+index 473e597c..e4fc42a1 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -432,16 +427,10 @@ index 25fce43f..8dbc41d6 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -82,105 +47,35 @@ variable "installer_script_folder" {
-   default = "/imagegeneration/installers"
+@@ -88,99 +53,35 @@ variable "install_password" {
+   sensitive = true
  }
  
--variable "install_password" {
--  type      = string
--  default   = ""
--  sensitive = true
--}
--
 -variable "location" {
 -  type    = string
 -  default = "${env("ARM_RESOURCE_LOCATION")}"
@@ -515,7 +504,7 @@ index 25fce43f..8dbc41d6 100644
 -  location                               = "${var.location}"
 -  managed_image_name                     = "${local.managed_image_name}"
 -  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
--  os_disk_size_gb                        = "86"
+-  os_disk_size_gb                        = "75"
 -  os_type                                = "Linux"
 -  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
 -  subscription_id                        = "${var.subscription_id}"
@@ -560,7 +549,7 @@ index 25fce43f..8dbc41d6 100644
    }
  
    provisioner "shell" {
-@@ -214,16 +109,22 @@ build {
+@@ -214,16 +115,22 @@ build {
    }
  
    provisioner "file" {
@@ -590,7 +579,7 @@ index 25fce43f..8dbc41d6 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -349,6 +250,13 @@ build {
+@@ -349,6 +256,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -604,7 +593,7 @@ index 25fce43f..8dbc41d6 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -357,10 +265,17 @@ build {
+@@ -357,10 +271,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -623,7 +612,7 @@ index 25fce43f..8dbc41d6 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -380,22 +295,22 @@ build {
+@@ -380,22 +301,22 @@ build {
      start_retry_timeout = "10m"
    }
  
@@ -662,7 +651,7 @@ index 25fce43f..8dbc41d6 100644
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-@@ -415,7 +330,6 @@ build {
+@@ -415,7 +336,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
