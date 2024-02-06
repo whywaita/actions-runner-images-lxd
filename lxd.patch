@@ -47,7 +47,7 @@ index 591a4172..cb76e2b3 100644
  done
  
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index 7fd49160..93993a57 100644
+index 7fd49160..acebcb66 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
 @@ -9,6 +9,8 @@
@@ -59,12 +59,13 @@ index 7fd49160..93993a57 100644
  # Install the Homebrew on Linux
  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
  
-@@ -28,4 +30,4 @@ if [[ -e $gfortran ]]; then
+@@ -28,4 +30,5 @@ if [[ -e $gfortran ]]; then
      rm $gfortran
  fi
  
 -invoke_tests "Tools" "Homebrew"
 +sudo -E invoke_tests "Tools" "Homebrew"
++sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 index fd3a295b..25ce1f08 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
