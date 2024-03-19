@@ -1,11 +1,11 @@
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 6db18e0a..f889f049 100644
+index 5e378157..5cef6fa9 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
 @@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
  set_etc_environment_variable "XDG_CONFIG_HOME" '$HOME/.config'
  
- # Change waagent entries to use /mnt for swapfile
+ # Change waagent entries to use /mnt for swap file
 -sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
 -sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
 -sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
@@ -29,7 +29,7 @@ index f17ce2f0..88922433 100644
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index 591a4172..cb76e2b3 100644
+index 1e3cd2d6..43478369 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 @@ -65,10 +65,10 @@ for version in ${dotnet_versions[@]}; do
@@ -47,7 +47,7 @@ index 591a4172..cb76e2b3 100644
  done
  
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index 7fd49160..acebcb66 100644
+index c8f2b682..1da414ab 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
 @@ -9,6 +9,8 @@
