@@ -1,8 +1,8 @@
 function(packer_def_path) {
   steps: [
-    { uses: 'actions/checkout@v3' },
-    { uses: 'whywaita/workflow-telemetry-action@add-disk-space' },
-    { uses: 'Kesin11/actions-timeline@v1' },
+    { uses: 'actions/checkout@v4' },
+    { uses: 'catchpoint/workflow-telemetry-action@v2' },
+    { uses: 'Kesin11/actions-timeline@v2' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
       name: 'Setup distrobuilder',
@@ -119,7 +119,7 @@ function(packer_def_path) {
     },
     {
       name: 'Upload artifact',
-      uses: 'actions/upload-artifact@v3',
+      uses: 'actions/upload-artifact@v4',
       with: {
         name: 'virtual-environments-lxd-${{ env.os-release }}-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip',
         path: '/mnt/output/*',
