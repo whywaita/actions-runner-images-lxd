@@ -1,4 +1,6 @@
-local steps_focal = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-20.04.pkr.hcl');
+local os_version = '20.04';
+
+local steps_focal = (import './lib/step.libsonnet')(os_version);
 local steps_tmate = (import './lib/tmate.libsonnet');
 
 {
@@ -9,7 +11,7 @@ local steps_tmate = (import './lib/tmate.libsonnet');
   },
   jobs: {
     'build-focal': steps_focal {
-      'runs-on': 'ubuntu-20.04',
+      'runs-on': std.format('ubuntu-%s', os_version),
       steps: steps_focal.steps + [
         steps_tmate,
       ],

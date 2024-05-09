@@ -1,6 +1,6 @@
 {
    "jobs": {
-      "build-jammy": {
+      "build-noble": {
          "runs-on": "ubuntu-22.04",
          "steps": [
             {
@@ -52,13 +52,13 @@
             },
             {
                "name": "packer init",
-               "run": "packer init images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "run": "packer init images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
             {
                "name": "packer validate packer.json",
-               "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -67,7 +67,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "packer build -on-error=abort images/ubuntu/templates/ubuntu-22.04.pkr.hcl",
+               "run": "packer build -on-error=abort images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -95,32 +95,22 @@
                "name": "Upload artifact",
                "uses": "actions/upload-artifact@v4",
                "with": {
-                  "name": "virtual-environments-lxd-22.04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
+                  "name": "virtual-environments-lxd-24.04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }
             },
             {
-               "env": {
-                  "SLACK_WEBHOOK_TYPE": "INCOMING_WEBHOOK",
-                  "SLACK_WEBHOOK_URL": "${{ secrets.SLACK_WEBHOOK_URL }}"
-               },
-               "name": "Notify",
-               "uses": "slackapi/slack-github-action@v1",
-               "with": {
-                  "payload": "{\n  \"blocks\": [\n    {\n      \"type\": \"section\",\n      \"text\": {\n        \"type\": \"mrkdwn\",\n        \"text\": \"Build actions-image-runner-lxd ${{ github.workflow }} is ${{ job.status }}\"\n      }\n    },\n    {\n      \"type\": \"section\",\n      \"fields\": [\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \"*Repository*: <https://github.com/whywaita/actions-runner-images-lxd|whywaita/actions-runner-images-lxd>\"\n        },\n        {\n          \"type\": \"mrkdwn\",\n          \"text\": \":arrow_right: <${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|View action>\"\n        }\n      ]\n    }\n  ]\n}\n"
-               }
+               "if": "failure()",
+               "name": "tmate",
+               "uses": "mxschmitt/action-tmate@v3"
             }
          ]
       }
    },
-   "name": "Build image (nightly) - jammy",
+   "name": "Build image - noble",
    "on": {
-      "schedule": [
-         {
-            "cron": "0 22 * * *"
-         }
-      ],
+      "pull_request": { },
       "workflow_dispatch": { }
    }
 }

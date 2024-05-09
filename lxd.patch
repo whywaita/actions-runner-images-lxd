@@ -16,7 +16,7 @@ index 5e378157..5cef6fa9 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubuntu/scripts/build/install-container-tools.sh
-index f17ce2f0..88922433 100644
+index 7319f04f..6615779e 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
 @@ -42,4 +42,8 @@ if is_ubuntu20; then
@@ -660,4 +660,296 @@ index 473e597c..e4fc42a1 100644
 +    inline          = ["export HISTSIZE=0 && sync"]
    }
 -
+ }
+diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
+index abea0141..5c3a4d89 100644
+--- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
++++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
+@@ -1,47 +1,12 @@
+ packer {
+   required_plugins {
+     azure = {
+-      source  = "github.com/hashicorp/azure"
+-      version = "1.4.5"
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
+     }
+   }
+ }
+ 
+-locals {
+-  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
+-}
+-
+-variable "allowed_inbound_ip_addresses" {
+-  type    = list(string)
+-  default = []
+-}
+-
+-variable "azure_tags" {
+-  type    = map(string)
+-  default = {}
+-}
+-
+-variable "build_resource_group_name" {
+-  type    = string
+-  default = "${env("BUILD_RESOURCE_GROUP_NAME")}"
+-}
+-
+-variable "client_cert_path" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_CERT_PATH")}"
+-}
+-
+-variable "client_id" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_ID")}"
+-}
+-
+-variable "client_secret" {
+-  type      = string
+-  default   = "${env("ARM_CLIENT_SECRET")}"
+-  sensitive = true
+-}
+-
+ variable "dockerhub_login" {
+   type    = string
+   default = "${env("DOCKERHUB_LOGIN")}"
+@@ -88,99 +53,35 @@ variable "install_password" {
+   sensitive = true
+ }
+ 
+-variable "location" {
+-  type    = string
+-  default = "${env("ARM_RESOURCE_LOCATION")}"
+-}
+-
+-variable "managed_image_name" {
+-  type    = string
+-  default = ""
+-}
+-
+-variable "managed_image_resource_group_name" {
+-  type    = string
+-  default = "${env("ARM_RESOURCE_GROUP")}"
+-}
+-
+-variable "private_virtual_network_with_public_ip" {
+-  type    = bool
+-  default = false
+-}
+-
+-variable "subscription_id" {
+-  type    = string
+-  default = "${env("ARM_SUBSCRIPTION_ID")}"
+-}
+-
+-variable "temp_resource_group_name" {
+-  type    = string
+-  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
+-}
+-
+-variable "tenant_id" {
+-  type    = string
+-  default = "${env("ARM_TENANT_ID")}"
+-}
+-
+-variable "virtual_network_name" {
+-  type    = string
+-  default = "${env("VNET_NAME")}"
+-}
+-
+-variable "virtual_network_resource_group_name" {
+-  type    = string
+-  default = "${env("VNET_RESOURCE_GROUP")}"
+-}
+-
+-variable "virtual_network_subnet_name" {
+-  type    = string
+-  default = "${env("VNET_SUBNET")}"
+-}
+-
+-variable "vm_size" {
+-  type    = string
+-  default = "Standard_D4s_v4"
+-}
+-
+-source "azure-arm" "build_image" {
+-  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
+-  build_resource_group_name              = "${var.build_resource_group_name}"
+-  client_cert_path                       = "${var.client_cert_path}"
+-  client_id                              = "${var.client_id}"
+-  client_secret                          = "${var.client_secret}"
+-  image_offer                            = "ubuntu-24_04-lts"
+-  image_publisher                        = "canonical"
+-  image_sku                              = "server-gen1"
+-  location                               = "${var.location}"
+-  managed_image_name                     = "${local.managed_image_name}"
+-  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
+-  os_disk_size_gb                        = "75"
+-  os_type                                = "Linux"
+-  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
+-  subscription_id                        = "${var.subscription_id}"
+-  temp_resource_group_name               = "${var.temp_resource_group_name}"
+-  tenant_id                              = "${var.tenant_id}"
+-  virtual_network_name                   = "${var.virtual_network_name}"
+-  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
+-  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
+-  vm_size                                = "${var.vm_size}"
+-
+-  dynamic "azure_tag" {
+-    for_each = var.azure_tags
+-    content {
+-      name = azure_tag.key
+-      value = azure_tag.value
+-    }
+-  }
++source "lxd" "build_image" {
++  image          = "ubuntu:noble"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
+ build {
+-  sources = ["source.azure-arm.build_image"]
++  sources = ["source.lxd.build_image"]
+ 
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+-    inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++  
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir ${var.image_folder}",
++      "chmod 755 ${var.image_folder}",
++      "mkdir ${var.installer_script_folder}",
++      "chmod 755 ${var.installer_script_folder}",
++      "mkdir ${var.helper_script_folder}",
++      "chmod 755 ${var.helper_script_folder}"
++    ]
+   }
+ 
+   provisioner "shell" {
+@@ -214,16 +115,22 @@ build {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}"
+-    sources     = [
+-      "${path.root}/../assets/post-gen",
+-      "${path.root}/../scripts/tests",
+-      "${path.root}/../scripts/docs-gen"
+-    ]
++    destination = "/imagegeneration/post-gen"
++    source      = "${path.root}/../assets/post-gen"
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
++    destination = "/imagegeneration/tests"
++    source      = "${path.root}/../scripts/tests"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen"
++  }
++
++  provisioner "file" {
++    destination = "${var.image_folder}/docs-gen/software-report-base"
+     source      = "${path.root}/../../../helpers/software-report-base"
+   }
+ 
+@@ -232,6 +139,13 @@ build {
+     source      = "${path.root}/../toolsets/toolset-2404.json"
+   }
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "sudo chmod 777 ${var.installer_script_folder}/toolset.json"
++    ]
++  }
++
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = [
+@@ -323,6 +237,13 @@ provisioner "shell" {
+     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
+   }
+ 
++  provisioner "shell" {
++    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline           = [
++      "gpasswd -a runner docker"
++    ]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
+@@ -337,7 +258,7 @@ provisioner "shell" {
+ 
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+-    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
++    execute_command  = "sudo -u runner /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
+   }
+ 
+@@ -360,22 +281,22 @@ provisioner "shell" {
+     start_retry_timeout = "10m"
+   }
+ 
+-  provisioner "shell" {
+-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+-    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
+-  }
+-
+-  provisioner "file" {
+-    destination = "${path.root}/../Ubuntu2404-Readme.md"
+-    direction   = "download"
+-    source      = "${var.image_folder}/software-report.md"
+-  }
+-
+-  provisioner "file" {
+-    destination = "${path.root}/../software-report.json"
+-    direction   = "download"
+-    source      = "${var.image_folder}/software-report.json"
+-  }
++#  provisioner "shell" {
++#    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
++#    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
++#  }
++#
++#  provisioner "file" {
++#    destination = "${path.root}/../Ubuntu2404-Readme.md"
++#    direction   = "download"
++#    source      = "${var.image_folder}/software-report.md"
++#  }
++#
++#  provisioner "file" {
++#    destination = "${path.root}/../software-report.json"
++#    direction   = "download"
++#    source      = "${var.image_folder}/software-report.json"
++#  }
+ 
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
+@@ -385,7 +306,7 @@ provisioner "shell" {
+ 
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
++    inline          = ["export HISTSIZE=0 && sync"]
+   }
+ 
  }
