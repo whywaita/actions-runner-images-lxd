@@ -1,6 +1,6 @@
 {
    "jobs": {
-      "build-jammy": {
+      "build-noble": {
          "runs-on": "ubuntu-22.04",
          "steps": [
             {
