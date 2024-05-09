@@ -14,7 +14,7 @@ local steps_notify = (import './lib/notify.libsonnet');
     workflow_dispatch: {},
   },
   jobs: {
-    'build-jammy': steps_noble {
+    'build-noble': steps_noble {
       'runs-on': std.format('ubuntu-%s', '22.04'), // TODO: replace to os_version after released GitHub-hosted runner
       steps: steps_noble.steps + [
         steps_notify,
