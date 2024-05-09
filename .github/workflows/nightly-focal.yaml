@@ -95,7 +95,7 @@
                "name": "Upload artifact",
                "uses": "actions/upload-artifact@v4",
                "with": {
-                  "name": "virtual-environments-lxd-${{ env.os-release }}-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
+                  "name": "virtual-environments-lxd-20.04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }

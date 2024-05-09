@@ -1,4 +1,6 @@
-function(packer_def_path) {
+local packer_def_path(os_version) = std.format('images/ubuntu/templates/ubuntu-%s.pkr.hcl', os_version);
+
+function(os_version) {
   steps: [
     { uses: 'actions/checkout@v4' },
     { uses: 'catchpoint/workflow-telemetry-action@v2' },
@@ -69,19 +71,19 @@ function(packer_def_path) {
     {
       name: 'packer init',
       shell: 'bash',
-      run: std.format('packer init %s', packer_def_path),
+      run: std.format('packer init %s', packer_def_path(os_version)),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('packer validate -syntax-only %s', packer_def_path),
+      run: std.format('packer validate -syntax-only %s', packer_def_path(os_version)),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('packer build -on-error=abort %s', packer_def_path),
+      run: std.format('packer build -on-error=abort %s', packer_def_path(os_version)),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,
@@ -121,7 +123,7 @@ function(packer_def_path) {
       name: 'Upload artifact',
       uses: 'actions/upload-artifact@v4',
       with: {
-        name: 'virtual-environments-lxd-${{ env.os-release }}-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip',
+        name: std.format('virtual-environments-lxd-%s-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip', os_version),
         path: '/mnt/output/*',
         'retention-days': 5,
       },

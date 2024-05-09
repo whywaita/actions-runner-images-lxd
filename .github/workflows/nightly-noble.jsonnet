@@ -1,5 +1,6 @@
-local steps_noble = (import './lib/step.libsonnet')('images/ubuntu/templates/ubuntu-24.04.pkr.hcl');
+local os_version = '24.04';
 
+local steps_noble = (import './lib/step.libsonnet')(os_version);
 local steps_notify = (import './lib/notify.libsonnet');
 
 {
@@ -14,7 +15,7 @@ local steps_notify = (import './lib/notify.libsonnet');
   },
   jobs: {
     'build-jammy': steps_noble {
-      'runs-on': 'ubuntu-22.04',
+      'runs-on': std.format('ubuntu-%s', '22.04'), // TODO: replace to os_version after released GitHub-hosted runner
       steps: steps_noble.steps + [
         steps_notify,
       ],
