@@ -16,7 +16,7 @@ index 5e378157..5cef6fa9 100644
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
 diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubuntu/scripts/build/install-container-tools.sh
-index 7319f04f..6615779e 100644
+index f47720d5..a0069592 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
 @@ -42,4 +42,8 @@ if is_ubuntu20; then
@@ -29,7 +29,7 @@ index 7319f04f..6615779e 100644
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index 1e3cd2d6..43478369 100644
+index f450f963..6462f750 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 @@ -65,10 +65,10 @@ for version in ${dotnet_versions[@]}; do
@@ -67,7 +67,7 @@ index c8f2b682..1da414ab 100644
 +sudo -E invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index fd3a295b..25ce1f08 100644
+index 101c5a3b..6777ad78 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -243,7 +243,7 @@ index fd3a295b..25ce1f08 100644
 +
    }
  
-   provisioner "shell" {
+   provisioner "file" {
 @@ -214,16 +116,22 @@ build {
    }
  
@@ -374,7 +374,7 @@ index fd3a295b..25ce1f08 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 473e597c..e4fc42a1 100644
+index 9b881a68..e8c573c6 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -549,7 +549,7 @@ index 473e597c..e4fc42a1 100644
 +    ]
    }
  
-   provisioner "shell" {
+   provisioner "file" {
 @@ -214,16 +115,22 @@ build {
    }
  
@@ -662,7 +662,7 @@ index 473e597c..e4fc42a1 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index abea0141..5c3a4d89 100644
+index 650202b3..bea2a65d 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -837,7 +837,7 @@ index abea0141..5c3a4d89 100644
 +    ]
    }
  
-   provisioner "shell" {
+   provisioner "file" {
 @@ -214,16 +115,22 @@ build {
    }
  
@@ -882,7 +882,7 @@ index abea0141..5c3a4d89 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -323,6 +237,13 @@ provisioner "shell" {
+@@ -325,6 +239,13 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -896,7 +896,7 @@ index abea0141..5c3a4d89 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -337,7 +258,7 @@ provisioner "shell" {
+@@ -339,7 +260,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -905,7 +905,7 @@ index abea0141..5c3a4d89 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -360,22 +281,22 @@ provisioner "shell" {
+@@ -362,22 +283,22 @@ provisioner "shell" {
      start_retry_timeout = "10m"
    }
  
@@ -944,7 +944,7 @@ index abea0141..5c3a4d89 100644
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-@@ -385,7 +306,7 @@ provisioner "shell" {
+@@ -387,7 +308,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
