@@ -662,15 +662,16 @@ index 9b881a68..e8c573c6 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 650202b3..bea2a65d 100644
+index 650202b3..c16df112 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
  packer {
    required_plugins {
-     azure = {
+-    azure = {
 -      source  = "github.com/hashicorp/azure"
 -      version = "1.4.5"
++    lxd = {
 +      source  = "github.com/hashicorp/lxd"
 +      version = "1.0.2"
      }
