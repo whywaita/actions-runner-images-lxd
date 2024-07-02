@@ -11,7 +11,7 @@ local steps_tmate = (import './lib/tmate.libsonnet');
   },
   jobs: {
     'build-noble': steps_noble {
-      'runs-on': std.format('ubuntu-%s', '22.04'), // TODO: replace to os_version after released GitHub-hosted runner
+      'runs-on': std.format('ubuntu-%s', os_version),
       steps: steps_noble.steps + [
         steps_tmate,
       ],
