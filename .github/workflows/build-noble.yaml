@@ -83,7 +83,7 @@
             },
             {
                "name": "Build by distrobuilder",
-               "run": "sudo mkdir -p /mnt/cache\nsudo mkdir -p /mnt/output\nsudo distrobuilder pack-lxd distrobuilder-def.yaml \"/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd\" /mnt/output --cache-dir /mnt/cache\n\nset -x\nls -l /mnt/output\n",
+               "run": "sudo mkdir -p /mnt/cache\nsudo mkdir -p /mnt/output\nsudo distrobuilder pack-incus distrobuilder-def.yaml \"/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd\" /mnt/output --cache-dir /mnt/cache\n\nset -x\nls -l /mnt/output\n",
                "shell": "bash"
             },
             {

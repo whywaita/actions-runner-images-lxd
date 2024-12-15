@@ -108,7 +108,7 @@ function(os_version) {
       run: |||
         sudo mkdir -p /mnt/cache
         sudo mkdir -p /mnt/output
-        sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
+        sudo distrobuilder pack-incus distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
 
         set -x
         ls -l /mnt/output
