@@ -81,6 +81,19 @@ index c8f2b682..1da414ab 100644
 -invoke_tests "Tools" "Homebrew"
 +sudo -E invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
+diff --git a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1 b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
+index 1174e7b6..e34a62e3 100644
+--- a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
++++ b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
+@@ -6,6 +6,8 @@ param (
+     [string] $OutputDirectory
+ )
+ 
++Write-Host "Path: $env:PATH"
++
+ $global:ErrorActionPreference = "Stop"
+ $global:ErrorView = "NormalView"
+ Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 index d8d821bc..7804c6b5 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
