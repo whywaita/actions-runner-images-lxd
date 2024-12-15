@@ -598,7 +598,7 @@ index 6dd0abf1..6e3296f3 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..27b2a7f0 100644
+index 7f02ff16..894cfb26 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -787,9 +787,10 @@ index 7f02ff16..27b2a7f0 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -797,10 +798,9 @@ index 7f02ff16..27b2a7f0 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
@@ -842,12 +842,16 @@ index 7f02ff16..27b2a7f0 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -371,15 +292,15 @@ provisioner "shell" {
+@@ -371,15 +292,19 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
 -    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
-+    inline           = ["sudo -u runner /bin/bash -c 'pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
++    inline           = [
++      "rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner/.*",
++      "pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}",
++      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
++    ]
    }
 -
 +  
@@ -861,7 +865,7 @@ index 7f02ff16..27b2a7f0 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -394,7 +315,7 @@ provisioner "shell" {
+@@ -394,7 +319,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
