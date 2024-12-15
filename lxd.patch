@@ -82,7 +82,7 @@ index c8f2b682..1da414ab 100644
 +sudo -E invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index d8d821bc..813faf5e 100644
+index d8d821bc..7804c6b5 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -178,8 +178,12 @@ index d8d821bc..813faf5e 100644
 -variable "virtual_network_name" {
 -  type    = string
 -  default = "${env("VNET_NAME")}"
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:focal"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
@@ -188,12 +192,8 @@ index d8d821bc..813faf5e 100644
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:focal"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "vm_size" {
 -  type    = string
 -  default = "Standard_D4s_v4"
@@ -326,59 +326,6 @@ index d8d821bc..813faf5e 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -384,29 +306,29 @@ build {
-     start_retry_timeout = "10m"
-   }
- 
--  provisioner "shell" {
--    environment_vars    = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
--    inline              = [
--      "pwsh -Command Write-Host Running Generate-SoftwareReport.ps1 script",
--      "pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}",
--      "pwsh -Command Write-Host Running RunAll-Tests.ps1 script",
--      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
--    ]
--    max_retries         = "3"
--    start_retry_timeout = "2m"
--  }
--
--  provisioner "file" {
--    destination = "${path.root}/../Ubuntu2004-Readme.md"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.md"
--  }
--
--  provisioner "file" {
--    destination = "${path.root}/../software-report.json"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.json"
--  }
-+#  provisioner "shell" {
-+#    environment_vars    = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-+#    inline              = [
-+#      "pwsh -Command Write-Host Running Generate-SoftwareReport.ps1 script",
-+#      "pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}",
-+#      "pwsh -Command Write-Host Running RunAll-Tests.ps1 script",
-+#      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
-+#    ]
-+#    max_retries         = "3"
-+#    start_retry_timeout = "2m"
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../Ubuntu2004-Readme.md"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.md"
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../software-report.json"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.json"
-+#  }
- 
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
 @@ -426,7 +348,6 @@ build {
  
    provisioner "shell" {
@@ -389,7 +336,7 @@ index d8d821bc..813faf5e 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 6dd0abf1..350ccf03 100644
+index 6dd0abf1..6e3296f3 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -480,17 +427,17 @@ index 6dd0abf1..350ccf03 100644
 -variable "tenant_id" {
 -  type    = string
 -  default = "${env("ARM_TENANT_ID")}"
+-}
+-
+-variable "virtual_network_name" {
+-  type    = string
+-  default = "${env("VNET_NAME")}"
 +source "lxd" "build_image" {
 +  image          = "ubuntu:jammy"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
  }
  
--variable "virtual_network_name" {
--  type    = string
--  default = "${env("VNET_NAME")}"
--}
--
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
@@ -577,9 +524,10 @@ index 6dd0abf1..350ccf03 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -587,10 +535,9 @@ index 6dd0abf1..350ccf03 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
@@ -628,45 +575,6 @@ index 6dd0abf1..350ccf03 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -380,22 +301,22 @@ build {
-     start_retry_timeout = "10m"
-   }
- 
--  provisioner "shell" {
--    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
--    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
--  }
--
--  provisioner "file" {
--    destination = "${path.root}/../Ubuntu2204-Readme.md"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.md"
--  }
--
--  provisioner "file" {
--    destination = "${path.root}/../software-report.json"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.json"
--  }
-+#  provisioner "shell" {
-+#    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-+#    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../Ubuntu2204-Readme.md"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.md"
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../software-report.json"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.json"
-+#  }
- 
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
 @@ -415,7 +336,6 @@ build {
  
    provisioner "shell" {
@@ -677,7 +585,7 @@ index 6dd0abf1..350ccf03 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..7677f710 100644
+index 7f02ff16..409391c3 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -866,10 +774,9 @@ index 7f02ff16..7677f710 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -877,9 +784,10 @@ index 7f02ff16..7677f710 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
@@ -921,45 +829,22 @@ index 7f02ff16..7677f710 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -369,22 +290,22 @@ provisioner "shell" {
-     start_retry_timeout = "10m"
+@@ -373,13 +294,13 @@ provisioner "shell" {
+     environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
    }
- 
--  provisioner "shell" {
--    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
--    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
--  }
 -
--  provisioner "file" {
--    destination = "${path.root}/../Ubuntu2404-Readme.md"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.md"
--  }
++  
+   provisioner "file" {
+     destination = "${path.root}/../Ubuntu2404-Readme.md"
+     direction   = "download"
+     source      = "${var.image_folder}/software-report.md"
+   }
 -
--  provisioner "file" {
--    destination = "${path.root}/../software-report.json"
--    direction   = "download"
--    source      = "${var.image_folder}/software-report.json"
--  }
-+#  provisioner "shell" {
-+#    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-+#    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../Ubuntu2404-Readme.md"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.md"
-+#  }
-+#
-+#  provisioner "file" {
-+#    destination = "${path.root}/../software-report.json"
-+#    direction   = "download"
-+#    source      = "${var.image_folder}/software-report.json"
-+#  }
- 
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
++  
+   provisioner "file" {
+     destination = "${path.root}/../software-report.json"
+     direction   = "download"
 @@ -394,7 +315,7 @@ provisioner "shell" {
  
    provisioner "shell" {
