@@ -1,5 +1,5 @@
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 5e378157..5cef6fa9 100644
+index 3c149295..19097573 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
 @@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -662,7 +662,7 @@ index 6dd0abf1..350ccf03 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 634721eb..bfac4393 100644
+index 7f02ff16..7677f710 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -883,7 +883,7 @@ index 634721eb..bfac4393 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -330,6 +244,13 @@ provisioner "shell" {
+@@ -332,6 +246,13 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -897,7 +897,7 @@ index 634721eb..bfac4393 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -344,7 +265,7 @@ provisioner "shell" {
+@@ -346,7 +267,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -906,7 +906,7 @@ index 634721eb..bfac4393 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -367,22 +288,22 @@ provisioner "shell" {
+@@ -369,22 +290,22 @@ provisioner "shell" {
      start_retry_timeout = "10m"
    }
  
@@ -945,7 +945,7 @@ index 634721eb..bfac4393 100644
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPT_FOLDER=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "IMAGE_FOLDER=${var.image_folder}"]
-@@ -392,7 +313,7 @@ provisioner "shell" {
+@@ -394,7 +315,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
