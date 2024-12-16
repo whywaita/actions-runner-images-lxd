@@ -598,7 +598,7 @@ index 6dd0abf1..6e3296f3 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..b1287bb7 100644
+index 7f02ff16..41f5e11b 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -846,13 +846,13 @@ index 7f02ff16..b1287bb7 100644
    }
  
    provisioner "shell" {
-+    execute_command   = "sudo bash -c '{{ .Vars }} {{ .Path }}'"
++    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} bash -l {{ .Path }}"
      environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
 -    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
 +    inline           = [
 +      "rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner/.*",
-+      "source /root/.bashrc && pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}",
-+      "source /root/.bashrc && pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
++      "pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}",
++      "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"
 +    ]
    }
 -
