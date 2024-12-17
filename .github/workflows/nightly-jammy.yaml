@@ -104,6 +104,7 @@
                "name": "Upload SoftwareReport.md",
                "uses": "actions/upload-artifact@v4",
                "with": {
+                  "name": "Ubuntu2204-Readme.md",
                   "path": "./runner-images/images/ubuntu/Ubuntu2204-Readme.md",
                   "retention-days": 5
                }
@@ -112,6 +113,7 @@
                "name": "Upload software-report.json",
                "uses": "actions/upload-artifact@v4",
                "with": {
+                  "name": "software-report.json",
                   "path": "./runner-images/images/ubuntu/software-report.json",
                   "retention-days": 5
                }
