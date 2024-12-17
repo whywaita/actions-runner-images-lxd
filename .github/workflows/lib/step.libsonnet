@@ -128,5 +128,21 @@ function(os_version) {
         'retention-days': 5,
       },
     },
+    {
+      name: 'Upload SoftwareReport.md',
+      uses: 'actions/upload-artifact@v4',
+      with: {
+        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
+        'retention-days': 5,
+      },
+    },
+    {
+      name: 'Upload software-report.json',
+      uses: 'actions/upload-artifact@v4',
+      with: {
+        path: './runner-images/images/ubuntu/software-report.json',
+        'retention-days': 5,
+      },
+    },
   ],
 }
