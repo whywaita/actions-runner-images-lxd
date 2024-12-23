@@ -83,7 +83,7 @@
             },
             {
                "name": "Build by distrobuilder",
-               "run": "sudo mkdir -p /mnt/cache\nsudo mkdir -p /mnt/output\nsudo distrobuilder pack-lxd distrobuilder-def.yaml \"/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd\" /mnt/output --cache-dir /mnt/cache\n\nset -x\nls -l /mnt/output\n",
+               "run": "sudo mkdir -p /mnt/cache\nsudo mkdir -p /mnt/output\nsudo distrobuilder pack-incus distrobuilder-def.yaml \"/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd\" /mnt/output --cache-dir /mnt/cache\n\nset -x\nls -l /mnt/output\n",
                "shell": "bash"
             },
             {
@@ -97,6 +97,24 @@
                "with": {
                   "name": "virtual-environments-lxd-22.04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
                   "path": "/mnt/output/*",
+                  "retention-days": 5
+               }
+            },
+            {
+               "name": "Upload SoftwareReport.md",
+               "uses": "actions/upload-artifact@v4",
+               "with": {
+                  "name": "Ubuntu2204-Readme.md",
+                  "path": "./runner-images/images/ubuntu/Ubuntu2204-Readme.md",
+                  "retention-days": 5
+               }
+            },
+            {
+               "name": "Upload software-report.json",
+               "uses": "actions/upload-artifact@v4",
+               "with": {
+                  "name": "software-report.json",
+                  "path": "./runner-images/images/ubuntu/software-report.json",
                   "retention-days": 5
                }
             },

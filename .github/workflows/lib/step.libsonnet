@@ -108,7 +108,7 @@ function(os_version) {
       run: |||
         sudo mkdir -p /mnt/cache
         sudo mkdir -p /mnt/output
-        sudo distrobuilder pack-lxd distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
+        sudo distrobuilder pack-incus distrobuilder-def.yaml "/var/snap/lxd/common/lxd/storage-pools/default/containers/packer-lxd" /mnt/output --cache-dir /mnt/cache
 
         set -x
         ls -l /mnt/output
@@ -125,6 +125,24 @@ function(os_version) {
       with: {
         name: std.format('virtual-environments-lxd-%s-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip', os_version),
         path: '/mnt/output/*',
+        'retention-days': 5,
+      },
+    },
+    {
+      name: 'Upload SoftwareReport.md',
+      uses: 'actions/upload-artifact@v4',
+      with: {
+        name: std.format('Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
+        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
+        'retention-days': 5,
+      },
+    },
+    {
+      name: 'Upload software-report.json',
+      uses: 'actions/upload-artifact@v4',
+      with: {
+        name: 'software-report.json',
+        path: './runner-images/images/ubuntu/software-report.json',
         'retention-days': 5,
       },
     },
