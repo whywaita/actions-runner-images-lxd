@@ -1,3 +1,27 @@
+diff --git a/images/ubuntu/assets/post-gen/environment-variables.sh b/images/ubuntu/assets/post-gen/environment-variables.sh
+index 975c8a4a..016995a1 100644
+--- a/images/ubuntu/assets/post-gen/environment-variables.sh
++++ b/images/ubuntu/assets/post-gen/environment-variables.sh
+@@ -2,5 +2,5 @@
+ 
+ # Replace $HOME with the default user's home directory for environmental variables related to the default user home directory
+ 
+-homeDir=$(cut -d: -f6 /etc/passwd | tail -1)
+-sed -i "s|\$HOME|$homeDir|g" /etc/environment
+\ No newline at end of file
++homeDir=$(cut -d: -f1,6 /etc/passwd | grep "runner:" | cut -d: -f2)
++sed -i "s|\$HOME|$homeDir|g" /etc/environment
+diff --git a/images/ubuntu/assets/post-gen/systemd-linger.sh b/images/ubuntu/assets/post-gen/systemd-linger.sh
+index 294c8f1b..bfc28952 100644
+--- a/images/ubuntu/assets/post-gen/systemd-linger.sh
++++ b/images/ubuntu/assets/post-gen/systemd-linger.sh
+@@ -1,5 +1,5 @@
+ #!/bin/bash
+ 
+ # Enable user session on boot, not on login
+-UserId=$(cut -d: -f3 /etc/passwd | tail -1)
++UserId=$(cut -d: -f1,3 /etc/passwd | grep "runner:" | cut -d: -f2)
+ loginctl enable-linger $UserId
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
 index 3c149295..19097573 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
