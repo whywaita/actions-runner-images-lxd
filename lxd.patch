@@ -626,7 +626,7 @@ index 6dd0abf1..27ee8ef5 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..19b07849 100644
+index 7f02ff16..923f875c 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -859,7 +859,7 @@ index 7f02ff16..19b07849 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -370,16 +285,23 @@ provisioner "shell" {
+@@ -370,16 +285,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -870,6 +870,7 @@ index 7f02ff16..19b07849 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -887,7 +888,7 @@ index 7f02ff16..19b07849 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -394,7 +316,7 @@ provisioner "shell" {
+@@ -394,7 +317,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
