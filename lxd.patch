@@ -104,7 +104,7 @@ index 1174e7b6..e34a62e3 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index d8d821bc..08a4e4e0 100644
+index d8d821bc..5e470155 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -158,7 +158,7 @@ index d8d821bc..08a4e4e0 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,36 @@ variable "install_password" {
+@@ -88,99 +53,26 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -200,12 +200,8 @@ index d8d821bc..08a4e4e0 100644
 -variable "virtual_network_name" {
 -  type    = string
 -  default = "${env("VNET_NAME")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:focal"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "virtual_network_resource_group_name" {
 -  type    = string
 -  default = "${env("VNET_RESOURCE_GROUP")}"
@@ -220,9 +216,7 @@ index d8d821bc..08a4e4e0 100644
 -  type    = string
 -  default = "Standard_D4s_v4"
 -}
-+build {
-+  sources = ["source.lxd.build_image"]
- 
+-
 -source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
@@ -252,19 +246,16 @@ index d8d821bc..08a4e4e0 100644
 -      name = azure_tag.key
 -      value = azure_tag.value
 -    }
-+  provisioner "shell" {
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-   }
--}
--
--build {
+-  }
++source "lxd" "build_image" {
++  image          = "ubuntu:focal"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
+ build {
 -  sources = ["source.azure-arm.build_image"]
++  sources = ["source.lxd.build_image"]
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -281,7 +272,7 @@ index d8d821bc..08a4e4e0 100644
    }
  
    provisioner "file" {
-@@ -214,16 +116,22 @@ build {
+@@ -214,16 +106,22 @@ build {
    }
  
    provisioner "file" {
@@ -293,9 +284,10 @@ index d8d821bc..08a4e4e0 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -303,15 +295,14 @@ index d8d821bc..08a4e4e0 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -232,6 +140,13 @@ build {
+@@ -232,6 +130,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2004.json"
    }
  
@@ -325,22 +316,21 @@ index d8d821bc..08a4e4e0 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -347,6 +262,13 @@ build {
-     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
+@@ -359,9 +264,20 @@ build {
+     scripts          = ["${path.root}/../scripts/build/install-pipx-packages.sh"]
    }
  
 +  provisioner "shell" {
-+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline           = [
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers",
 +      "gpasswd -a runner docker"
 +    ]
 +  }
 +
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -361,7 +283,7 @@ build {
- 
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
 -    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
@@ -348,7 +338,7 @@ index d8d821bc..08a4e4e0 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -385,12 +307,16 @@ build {
+@@ -385,12 +301,16 @@ build {
    }
  
    provisioner "shell" {
@@ -369,7 +359,7 @@ index d8d821bc..08a4e4e0 100644
      ]
      max_retries         = "3"
      start_retry_timeout = "2m"
-@@ -426,7 +352,6 @@ build {
+@@ -426,7 +346,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -379,7 +369,7 @@ index d8d821bc..08a4e4e0 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 6dd0abf1..f7e9d2f7 100644
+index 6dd0abf1..27ee8ef5 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -433,7 +423,7 @@ index 6dd0abf1..f7e9d2f7 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,35 @@ variable "install_password" {
+@@ -88,99 +53,25 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -485,19 +475,13 @@ index 6dd0abf1..f7e9d2f7 100644
 -variable "virtual_network_subnet_name" {
 -  type    = string
 -  default = "${env("VNET_SUBNET")}"
-+source "lxd" "build_image" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
- }
- 
+-}
+-
 -variable "vm_size" {
 -  type    = string
 -  default = "Standard_D4s_v4"
 -}
-+build {
-+  sources = ["source.lxd.build_image"]
- 
+-
 -source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
@@ -527,19 +511,16 @@ index 6dd0abf1..f7e9d2f7 100644
 -      name = azure_tag.key
 -      value = azure_tag.value
 -    }
-+  provisioner "shell" {
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-   }
--}
--
--build {
+-  }
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
+ build {
 -  sources = ["source.azure-arm.build_image"]
++  sources = ["source.lxd.build_image"]
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -555,7 +536,7 @@ index 6dd0abf1..f7e9d2f7 100644
    }
  
    provisioner "file" {
-@@ -214,16 +115,22 @@ build {
+@@ -214,16 +105,22 @@ build {
    }
  
    provisioner "file" {
@@ -567,10 +548,9 @@ index 6dd0abf1..f7e9d2f7 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -578,29 +558,29 @@ index 6dd0abf1..f7e9d2f7 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -349,6 +256,13 @@ build {
-     scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
+@@ -355,12 +252,30 @@ build {
+     scripts          = ["${path.root}/../scripts/build/install-pipx-packages.sh"]
    }
  
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers",
 +      "gpasswd -a runner docker"
 +    ]
 +  }
 +
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -357,10 +271,17 @@ build {
- 
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
 -    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
@@ -618,7 +598,7 @@ index 6dd0abf1..f7e9d2f7 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -381,8 +302,15 @@ build {
+@@ -381,8 +296,15 @@ build {
    }
  
    provisioner "shell" {
@@ -636,7 +616,7 @@ index 6dd0abf1..f7e9d2f7 100644
    }
  
    provisioner "file" {
-@@ -415,7 +343,6 @@ build {
+@@ -415,7 +337,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -646,7 +626,7 @@ index 6dd0abf1..f7e9d2f7 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..d4beef9d 100644
+index 7f02ff16..923f875c 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,47 +1,12 @@
@@ -700,7 +680,7 @@ index 7f02ff16..d4beef9d 100644
  variable "dockerhub_login" {
    type    = string
    default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,35 @@ variable "install_password" {
+@@ -88,99 +53,25 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -803,16 +783,6 @@ index 7f02ff16..d4beef9d 100644
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 -    inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
 +    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-+  }
-+  
-+  provisioner "shell" {
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
 +      "mkdir ${var.image_folder}",
 +      "chmod 755 ${var.image_folder}",
 +      "mkdir ${var.installer_script_folder}",
@@ -823,7 +793,7 @@ index 7f02ff16..d4beef9d 100644
    }
  
    provisioner "file" {
-@@ -214,16 +115,22 @@ build {
+@@ -214,16 +105,22 @@ build {
    }
  
    provisioner "file" {
@@ -835,15 +805,15 @@ index 7f02ff16..d4beef9d 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/tests"
++    source      = "${path.root}/../scripts/tests"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
-+    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests"
-+  }
-+
-+  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
 +  }
@@ -853,7 +823,7 @@ index 7f02ff16..d4beef9d 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -232,6 +139,13 @@ build {
+@@ -232,6 +129,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -867,22 +837,21 @@ index 7f02ff16..d4beef9d 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -332,6 +246,13 @@ provisioner "shell" {
-     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
+@@ -344,9 +248,20 @@ provisioner "shell" {
+     scripts          = ["${path.root}/../scripts/build/install-pipx-packages.sh"]
    }
  
 +  provisioner "shell" {
-+    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline           = [
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers",
 +      "gpasswd -a runner docker"
 +    ]
 +  }
 +
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -346,7 +267,7 @@ provisioner "shell" {
- 
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
 -    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
@@ -890,7 +859,7 @@ index 7f02ff16..d4beef9d 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -370,16 +291,23 @@ provisioner "shell" {
+@@ -370,16 +285,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -901,6 +870,7 @@ index 7f02ff16..d4beef9d 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -918,7 +888,7 @@ index 7f02ff16..d4beef9d 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -394,7 +322,7 @@ provisioner "shell" {
+@@ -394,7 +317,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
