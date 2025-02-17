@@ -91,7 +91,7 @@ index c8f2b682..1da414ab 100644
 +sudo -E invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1 b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
-index 1174e7b6..e34a62e3 100644
+index 96226233..b8d09bd3 100644
 --- a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 +++ b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 @@ -6,6 +6,8 @@ param (
@@ -104,22 +104,10 @@ index 1174e7b6..e34a62e3 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-index d8d821bc..08a4e4e0 100644
+index 8839e11c..08a4e4e0 100644
 --- a/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-20.04.pkr.hcl
-@@ -1,47 +1,12 @@
- packer {
-   required_plugins {
--    azure = {
--      source  = "github.com/hashicorp/azure"
--      version = "1.4.5"
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-     }
-   }
- }
- 
+@@ -1,36 +1,10 @@
 -locals {
 -  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
 -}
@@ -153,12 +141,17 @@ index d8d821bc..08a4e4e0 100644
 -  type      = string
 -  default   = "${env("ARM_CLIENT_SECRET")}"
 -  sensitive = true
--}
--
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
++    }
++  }
+ }
+ 
  variable "dockerhub_login" {
-   type    = string
-   default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,36 @@ variable "install_password" {
+@@ -79,99 +53,36 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -281,7 +274,7 @@ index d8d821bc..08a4e4e0 100644
    }
  
    provisioner "file" {
-@@ -214,16 +116,22 @@ build {
+@@ -205,16 +116,22 @@ build {
    }
  
    provisioner "file" {
@@ -311,7 +304,7 @@ index d8d821bc..08a4e4e0 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -232,6 +140,13 @@ build {
+@@ -223,6 +140,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2004.json"
    }
  
@@ -325,7 +318,7 @@ index d8d821bc..08a4e4e0 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -347,6 +262,13 @@ build {
+@@ -338,6 +262,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -339,7 +332,7 @@ index d8d821bc..08a4e4e0 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -361,7 +283,7 @@ build {
+@@ -352,7 +283,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -348,7 +341,7 @@ index d8d821bc..08a4e4e0 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -385,12 +307,16 @@ build {
+@@ -376,12 +307,16 @@ build {
    }
  
    provisioner "shell" {
@@ -369,7 +362,7 @@ index d8d821bc..08a4e4e0 100644
      ]
      max_retries         = "3"
      start_retry_timeout = "2m"
-@@ -426,7 +352,6 @@ build {
+@@ -417,7 +352,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -379,22 +372,10 @@ index d8d821bc..08a4e4e0 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index 6dd0abf1..f7e9d2f7 100644
+index 0af16d28..f7e9d2f7 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-@@ -1,47 +1,12 @@
- packer {
-   required_plugins {
--    azure = {
--      source  = "github.com/hashicorp/azure"
--      version = "1.4.5"
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-     }
-   }
- }
- 
+@@ -1,36 +1,10 @@
 -locals {
 -  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
 -}
@@ -428,12 +409,17 @@ index 6dd0abf1..f7e9d2f7 100644
 -  type      = string
 -  default   = "${env("ARM_CLIENT_SECRET")}"
 -  sensitive = true
--}
--
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
++    }
++  }
+ }
+ 
  variable "dockerhub_login" {
-   type    = string
-   default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,35 @@ variable "install_password" {
+@@ -79,99 +53,35 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -555,7 +541,7 @@ index 6dd0abf1..f7e9d2f7 100644
    }
  
    provisioner "file" {
-@@ -214,16 +115,22 @@ build {
+@@ -205,16 +115,22 @@ build {
    }
  
    provisioner "file" {
@@ -585,7 +571,7 @@ index 6dd0abf1..f7e9d2f7 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -349,6 +256,13 @@ build {
+@@ -340,6 +256,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -599,7 +585,7 @@ index 6dd0abf1..f7e9d2f7 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -357,10 +271,17 @@ build {
+@@ -348,10 +271,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -618,7 +604,7 @@ index 6dd0abf1..f7e9d2f7 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -381,8 +302,15 @@ build {
+@@ -372,8 +302,15 @@ build {
    }
  
    provisioner "shell" {
@@ -636,7 +622,7 @@ index 6dd0abf1..f7e9d2f7 100644
    }
  
    provisioner "file" {
-@@ -415,7 +343,6 @@ build {
+@@ -406,7 +343,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -646,22 +632,10 @@ index 6dd0abf1..f7e9d2f7 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 7f02ff16..d4beef9d 100644
+index 9e2ba381..d4beef9d 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-@@ -1,47 +1,12 @@
- packer {
-   required_plugins {
--    azure = {
--      source  = "github.com/hashicorp/azure"
--      version = "1.4.5"
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-     }
-   }
- }
- 
+@@ -1,36 +1,10 @@
 -locals {
 -  managed_image_name = var.managed_image_name != "" ? var.managed_image_name : "packer-${var.image_os}-${var.image_version}"
 -}
@@ -695,12 +669,17 @@ index 7f02ff16..d4beef9d 100644
 -  type      = string
 -  default   = "${env("ARM_CLIENT_SECRET")}"
 -  sensitive = true
--}
--
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
++    }
++  }
+ }
+ 
  variable "dockerhub_login" {
-   type    = string
-   default = "${env("DOCKERHUB_LOGIN")}"
-@@ -88,99 +53,35 @@ variable "install_password" {
+@@ -79,99 +53,35 @@ variable "install_password" {
    sensitive = true
  }
  
@@ -823,7 +802,7 @@ index 7f02ff16..d4beef9d 100644
    }
  
    provisioner "file" {
-@@ -214,16 +115,22 @@ build {
+@@ -205,16 +115,22 @@ build {
    }
  
    provisioner "file" {
@@ -853,7 +832,7 @@ index 7f02ff16..d4beef9d 100644
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -232,6 +139,13 @@ build {
+@@ -223,6 +139,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -867,7 +846,7 @@ index 7f02ff16..d4beef9d 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -332,6 +246,13 @@ provisioner "shell" {
+@@ -323,6 +246,13 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -881,7 +860,7 @@ index 7f02ff16..d4beef9d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -346,7 +267,7 @@ provisioner "shell" {
+@@ -337,7 +267,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -890,7 +869,7 @@ index 7f02ff16..d4beef9d 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -370,16 +291,23 @@ provisioner "shell" {
+@@ -361,16 +291,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -918,7 +897,7 @@ index 7f02ff16..d4beef9d 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -394,7 +322,7 @@ provisioner "shell" {
+@@ -385,7 +322,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
