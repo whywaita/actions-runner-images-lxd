@@ -104,7 +104,7 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index d3486533..278a8c9d 100644
+index d3486533..29d71ab1 100644
 --- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
 @@ -1,44 +1,3 @@
@@ -152,7 +152,7 @@ index d3486533..278a8c9d 100644
  variable "helper_script_folder" {
    type    = string
    default = "/imagegeneration/helpers"
-@@ -69,166 +28,23 @@ variable "installer_script_folder" {
+@@ -69,166 +28,45 @@ variable "installer_script_folder" {
    default = "/imagegeneration/installers"
  }
  
@@ -260,18 +260,31 @@ index d3486533..278a8c9d 100644
 -variable "use_azure_cli_auth" {
 -  type    = bool
 -  default = false
--}
--
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
++    }
++  }
+ }
+ 
 -variable "os_disk_size_gb" {
 -  type    = number
 -  default = 75
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "image_os_type" {
 -  type    = string
 -  default = "Linux"
 -}
--
++build {
++  sources = ["source.lxd.build_image"]
+ 
 -source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
@@ -310,28 +323,36 @@ index d3486533..278a8c9d 100644
 -    content {
 -      name = azure_tag.key
 -      value = azure_tag.value
-+packer {
-+  required_plugins {
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-     }
+-    }
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++  
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir ${var.image_folder}",
++      "chmod 755 ${var.image_folder}",
++      "mkdir ${var.installer_script_folder}",
++      "chmod 755 ${var.installer_script_folder}",
++      "mkdir ${var.helper_script_folder}",
++      "chmod 755 ${var.helper_script_folder}"
++    ]
    }
- }
- 
-+source "lxd" "build_image" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
-+}
-+
- build {
+-}
+-
+-build {
 -  sources = ["source.azure-arm.build_image"]
-+  sources = ["source.lxd.build_image"]
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -266,16 +82,22 @@ build {
+@@ -266,16 +104,22 @@ build {
    }
  
    provisioner "file" {
@@ -343,10 +364,9 @@ index d3486533..278a8c9d 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -354,14 +374,15 @@ index d3486533..278a8c9d 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -402,6 +224,13 @@ build {
+@@ -402,6 +246,13 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -375,7 +396,7 @@ index d3486533..278a8c9d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -410,10 +239,17 @@ build {
+@@ -410,10 +261,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -394,7 +415,7 @@ index d3486533..278a8c9d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -434,8 +270,15 @@ build {
+@@ -434,8 +292,15 @@ build {
    }
  
    provisioner "shell" {
@@ -412,7 +433,7 @@ index d3486533..278a8c9d 100644
    }
  
    provisioner "file" {
-@@ -468,7 +311,6 @@ build {
+@@ -468,7 +333,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -422,7 +443,7 @@ index d3486533..278a8c9d 100644
 -
  }
 diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 65eba995..c84820f3 100644
+index 65eba995..9ae1781a 100644
 --- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 +++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
 @@ -1,44 +1,3 @@
@@ -470,7 +491,7 @@ index 65eba995..c84820f3 100644
  variable "helper_script_folder" {
    type    = string
    default = "/imagegeneration/helpers"
-@@ -69,166 +28,23 @@ variable "installer_script_folder" {
+@@ -69,166 +28,45 @@ variable "installer_script_folder" {
    default = "/imagegeneration/installers"
  }
  
@@ -578,18 +599,31 @@ index 65eba995..c84820f3 100644
 -variable "use_azure_cli_auth" {
 -  type    = bool
 -  default = false
--}
--
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.2"
++    }
++  }
+ }
+ 
 -variable "os_disk_size_gb" {
 -  type    = number
 -  default = 75
--}
--
++source "lxd" "build_image" {
++  image          = "ubuntu:noble"
++  container_name = "packer-lxd"
++  skip_publish   = true
+ }
+ 
 -variable "image_os_type" {
 -  type    = string
 -  default = "Linux"
 -}
--
++build {
++  sources = ["source.lxd.build_image"]
+ 
 -source "azure-arm" "build_image" {
 -  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
 -  build_resource_group_name              = "${var.build_resource_group_name}"
@@ -628,28 +662,35 @@ index 65eba995..c84820f3 100644
 -    content {
 -      name = azure_tag.key
 -      value = azure_tag.value
-+packer {
-+  required_plugins {
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-     }
+-    }
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
    }
- }
+-}
  
-+source "lxd" "build_image" {
-+  image          = "ubuntu:noble"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
-+}
-+
- build {
+-build {
 -  sources = ["source.azure-arm.build_image"]
-+  sources = ["source.lxd.build_image"]
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir ${var.image_folder}",
++      "chmod 755 ${var.image_folder}",
++      "mkdir ${var.installer_script_folder}",
++      "chmod 755 ${var.installer_script_folder}",
++      "mkdir ${var.helper_script_folder}",
++      "chmod 755 ${var.helper_script_folder}"
++    ]
++  }
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -266,16 +82,22 @@ build {
+@@ -266,16 +104,22 @@ build {
    }
  
    provisioner "file" {
@@ -661,10 +702,9 @@ index 65eba995..c84820f3 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen"
-   }
- 
-   provisioner "file" {
--    destination = "${var.image_folder}/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests"
 +  }
@@ -672,14 +712,15 @@ index 65eba995..c84820f3 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen"
-+  }
-+
-+  provisioner "file" {
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
      source      = "${path.root}/../../../helpers/software-report-base"
    }
  
-@@ -284,6 +106,13 @@ build {
+@@ -284,6 +128,13 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -693,7 +734,7 @@ index 65eba995..c84820f3 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -385,6 +214,13 @@ provisioner "shell" {
+@@ -385,6 +236,13 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -707,7 +748,7 @@ index 65eba995..c84820f3 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -399,7 +235,7 @@ provisioner "shell" {
+@@ -399,7 +257,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -716,7 +757,7 @@ index 65eba995..c84820f3 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -423,16 +259,23 @@ provisioner "shell" {
+@@ -423,16 +281,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -744,7 +785,7 @@ index 65eba995..c84820f3 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -447,7 +290,7 @@ provisioner "shell" {
+@@ -447,7 +312,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
