@@ -341,10 +341,10 @@ index 94f595c3..fbd0af16 100644
  
  }
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index 4080b9b8..0ce40d8c 100644
+index 4080b9b8..7b4a74fd 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-@@ -1,48 +1,5 @@
+@@ -1,48 +1,14 @@
 -source "azure-arm" "image" {
 -  client_cert_path                       = var.client_cert_path
 -  client_id                              = var.client_id
@@ -390,13 +390,20 @@ index 4080b9b8..0ce40d8c 100644
 -    content {
 -      name  = azure_tag.key
 -      value = azure_tag.value
--    }
--  }
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.3"
+     }
+   }
+ }
++
 +source "lxd" "build_image" {
 +  image          = "ubuntu:jammy"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
- }
++}
 diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 index e2c6aaf7..1578cf67 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
