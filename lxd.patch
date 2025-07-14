@@ -104,17 +104,23 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 05259514..8967b762 100644
+index 05259514..d968ae05 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-@@ -1,5 +1,5 @@
+@@ -1,5 +1,11 @@
++source "lxd" "build_image" {
++  image          = "ubuntu:jammy"
++  container_name = "packer-lxd"
++  skip_publish   = true
++}
++
  build {
 -  sources = ["source.azure-arm.image"]
 +  sources = ["source.lxd.build_image"]
    name = "ubuntu-22_04"
  
    provisioner "shell" {
-@@ -9,7 +9,7 @@ build {
+@@ -9,7 +15,7 @@ build {
  
    provisioner "file" {
      destination = "${var.helper_script_folder}"
@@ -123,7 +129,7 @@ index 05259514..8967b762 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +34,27 @@ build {
+@@ -34,21 +40,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -145,22 +151,22 @@ index 05259514..8967b762 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests/"
-+  }
-+
-+  provisioner "file" {
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
 +    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
    provisioner "file" {
-@@ -174,6 +180,20 @@ build {
+@@ -174,6 +186,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -181,7 +187,7 @@ index 05259514..8967b762 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -182,10 +202,17 @@ build {
+@@ -182,10 +208,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -200,7 +206,7 @@ index 05259514..8967b762 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -206,8 +233,15 @@ build {
+@@ -206,8 +239,15 @@ build {
    }
  
    provisioner "shell" {
@@ -218,7 +224,7 @@ index 05259514..8967b762 100644
    }
  
    provisioner "file" {
-@@ -246,7 +280,6 @@ build {
+@@ -246,7 +286,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -228,17 +234,23 @@ index 05259514..8967b762 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 94f595c3..43809bdd 100644
+index 94f595c3..cc2dc6cf 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-@@ -1,5 +1,5 @@
+@@ -1,5 +1,11 @@
++source "lxd" "build_image" {
++  image          = "ubuntu:noble"
++  container_name = "packer-lxd"
++  skip_publish   = true
++}
++
  build {
 -  sources = ["source.azure-arm.image"]
 +  sources = ["source.lxd.build_image"]
    name = "ubuntu-24_04"
  
    provisioner "shell" {
-@@ -9,7 +9,7 @@ build {
+@@ -9,7 +15,7 @@ build {
  
    provisioner "file" {
      destination = "${var.helper_script_folder}"
@@ -247,7 +259,7 @@ index 94f595c3..43809bdd 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +34,27 @@ build {
+@@ -34,21 +40,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -269,22 +281,22 @@ index 94f595c3..43809bdd 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests/"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen/"
-+  }
-+
-+  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
 +    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
    provisioner "file" {
-@@ -56,6 +62,20 @@ build {
+@@ -56,6 +68,20 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -305,7 +317,7 @@ index 94f595c3..43809bdd 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -157,6 +177,20 @@ provisioner "shell" {
+@@ -157,6 +183,20 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -326,7 +338,7 @@ index 94f595c3..43809bdd 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -171,7 +205,7 @@ provisioner "shell" {
+@@ -171,7 +211,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -335,7 +347,7 @@ index 94f595c3..43809bdd 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -195,16 +229,23 @@ provisioner "shell" {
+@@ -195,16 +235,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -363,7 +375,7 @@ index 94f595c3..43809bdd 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -225,7 +266,7 @@ provisioner "shell" {
+@@ -225,7 +272,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -397,10 +409,10 @@ index fe9b189a..00000000
 -  image_properties = local.image_properties_map[var.image_os]
 -}
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index 4080b9b8..7b4a74fd 100644
+index 4080b9b8..a0fc7d33 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-@@ -1,48 +1,14 @@
+@@ -1,48 +1,8 @@
 -source "azure-arm" "image" {
 -  client_cert_path                       = var.client_cert_path
 -  client_id                              = var.client_id
@@ -454,12 +466,6 @@ index 4080b9b8..7b4a74fd 100644
      }
    }
  }
-+
-+source "lxd" "build_image" {
-+  image          = "ubuntu:jammy"
-+  container_name = "packer-lxd"
-+  skip_publish   = true
-+}
 diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 index e2c6aaf7..1578cf67 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
