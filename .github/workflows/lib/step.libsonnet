@@ -71,19 +71,19 @@ function(os_version) {
     {
       name: 'packer init',
       shell: 'bash',
-      run: std.format('packer init %s', packer_def_path(os_version)),
+      run: 'packer init ./images/ubuntu/templates/',
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('packer validate -syntax-only %s', packer_def_path(os_version)),
+      run: std.format('packer validate -syntax-only -only ubuntu-%s.lxd.build_image ./images/ubuntu/templates/', os_version),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('packer build -on-error=abort %s', packer_def_path(os_version)),
+      run: std.format('packer build -only ubuntu-%s.lxd.build_image ./images/ubuntu/templates/', os_version),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,

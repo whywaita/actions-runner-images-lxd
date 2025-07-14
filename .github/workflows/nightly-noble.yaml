@@ -52,13 +52,13 @@
             },
             {
                "name": "packer init",
-               "run": "packer init images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl",
+               "run": "packer init ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
             {
                "name": "packer validate packer.json",
-               "run": "packer validate -syntax-only images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl",
+               "run": "packer validate -syntax-only -only ubuntu-24_04.lxd.build_image ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -67,7 +67,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "packer build -on-error=abort images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl",
+               "run": "packer build -only ubuntu-24_04.lxd.build_image ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
