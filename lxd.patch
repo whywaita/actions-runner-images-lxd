@@ -104,7 +104,7 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 05259514..b538eb80 100644
+index 05259514..8967b762 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,5 @@
@@ -114,7 +114,21 @@ index 05259514..b538eb80 100644
    name = "ubuntu-22_04"
  
    provisioner "shell" {
-@@ -38,16 +38,22 @@ build {
+@@ -9,7 +9,7 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.helper_script_folder}"
+-    source      = "${path.root}/../scripts/helpers"
++    source      = "${path.root}/../scripts/helpers/"
+   }
+ 
+   provisioner "shell" {
+@@ -34,21 +34,27 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.installer_script_folder}"
+-    source      = "${path.root}/../scripts/build"
++    source      = "${path.root}/../scripts/build/"
    }
  
    provisioner "file" {
@@ -125,25 +139,27 @@ index 05259514..b538eb80 100644
 -      "${path.root}/../scripts/docs-gen"
 -    ]
 +    destination = "/imagegeneration/post-gen"
-+    source      = "${path.root}/../assets/post-gen"
++    source      = "${path.root}/../assets/post-gen/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests"
++    source      = "${path.root}/../scripts/tests/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
+-    source      = "${path.root}/../../../helpers/software-report-base"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
-     source      = "${path.root}/../../../helpers/software-report-base"
++    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
+   provisioner "file" {
 @@ -174,6 +180,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
@@ -212,7 +228,7 @@ index 05259514..b538eb80 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 94f595c3..fbd0af16 100644
+index 94f595c3..43809bdd 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 @@ -1,5 +1,5 @@
@@ -222,7 +238,21 @@ index 94f595c3..fbd0af16 100644
    name = "ubuntu-24_04"
  
    provisioner "shell" {
-@@ -38,16 +38,22 @@ build {
+@@ -9,7 +9,7 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.helper_script_folder}"
+-    source      = "${path.root}/../scripts/helpers"
++    source      = "${path.root}/../scripts/helpers/"
+   }
+ 
+   provisioner "shell" {
+@@ -34,21 +34,27 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.installer_script_folder}"
+-    source      = "${path.root}/../scripts/build"
++    source      = "${path.root}/../scripts/build/"
    }
  
    provisioner "file" {
@@ -233,25 +263,27 @@ index 94f595c3..fbd0af16 100644
 -      "${path.root}/../scripts/docs-gen"
 -    ]
 +    destination = "/imagegeneration/post-gen"
-+    source      = "${path.root}/../assets/post-gen"
++    source      = "${path.root}/../assets/post-gen/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests"
++    source      = "${path.root}/../scripts/tests/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
+-    source      = "${path.root}/../../../helpers/software-report-base"
 +    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
-     source      = "${path.root}/../../../helpers/software-report-base"
++    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
+   provisioner "file" {
 @@ -56,6 +62,20 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
