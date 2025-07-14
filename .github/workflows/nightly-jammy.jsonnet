@@ -1,4 +1,4 @@
-local os_version = '22.04';
+local os_version = '22_04';
 
 local steps_jammy = (import './lib/step.libsonnet')(os_version);
 local steps_notify = (import './lib/notify.libsonnet');
@@ -15,7 +15,7 @@ local steps_notify = (import './lib/notify.libsonnet');
   },
   jobs: {
     'build-jammy': steps_jammy {
-      'runs-on': std.format('ubuntu-%s', os_version),
+      'runs-on': std.format('ubuntu-%s', std.strReplace(os_version, "_", ".")),
       steps: steps_jammy.steps + [
         steps_notify,
       ],

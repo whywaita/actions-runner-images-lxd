@@ -1,4 +1,4 @@
-local packer_def_path(os_version) = std.format('images/ubuntu/templates/ubuntu-%s.pkr.hcl', os_version);
+local packer_def_path(os_version) = std.format('images/ubuntu/templates/build.ubuntu-%s.pkr.hcl', os_version);
 
 function(os_version) {
   steps: [
@@ -132,8 +132,8 @@ function(os_version) {
       name: 'Upload SoftwareReport.md',
       uses: 'actions/upload-artifact@v4',
       with: {
-        name: std.format('Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
-        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
+        name: std.format('Ubuntu%s-Readme.md', std.strReplace(os_version, "_", "")),
+        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, "_", "")),
         'retention-days': 5,
       },
     },

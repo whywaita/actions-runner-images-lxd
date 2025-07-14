@@ -1,4 +1,4 @@
-local os_version = '24.04';
+local os_version = '24_04';
 
 local steps_noble = (import './lib/step.libsonnet')(os_version);
 local steps_tmate = (import './lib/tmate.libsonnet');
@@ -11,7 +11,7 @@ local steps_tmate = (import './lib/tmate.libsonnet');
   },
   jobs: {
     'build-noble': steps_noble {
-      'runs-on': std.format('ubuntu-%s', '22.04'), // TODO: replace to os_version after released GitHub-hosted runner
+      'runs-on': std.format('ubuntu-%s', std.strReplace('22_04', "_", ".")), // TODO: replace to os_version after released GitHub-hosted runner
       steps: steps_noble.steps + [
         steps_tmate,
       ],
