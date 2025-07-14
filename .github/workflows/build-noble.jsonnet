@@ -9,6 +9,9 @@ local steps_tmate = (import './lib/tmate.libsonnet');
     pull_request: {},
     workflow_dispatch: {},
   },
+  env: {
+    PACKER_GITHUB_API_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+  },
   jobs: {
     'build-noble': steps_noble {
       'runs-on': std.format('ubuntu-%s', std.strReplace('22_04', "_", ".")), // TODO: replace to os_version after released GitHub-hosted runner

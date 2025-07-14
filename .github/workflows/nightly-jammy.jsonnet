@@ -13,6 +13,9 @@ local steps_notify = (import './lib/notify.libsonnet');
     ],
     workflow_dispatch: {},
   },
+  env: {
+    PACKER_GITHUB_API_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+  },
   jobs: {
     'build-jammy': steps_jammy {
       'runs-on': std.format('ubuntu-%s', std.strReplace(os_version, "_", ".")),

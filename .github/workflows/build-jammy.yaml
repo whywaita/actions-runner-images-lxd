@@ -1,4 +1,7 @@
 {
+   "env": {
+      "PACKER_GITHUB_API_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+   },
    "jobs": {
       "build-jammy": {
          "runs-on": "ubuntu-22.04",
