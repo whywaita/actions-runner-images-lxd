@@ -82,9 +82,20 @@ function(os_version) {
     },
     {
       name: 'packer build packer.json',
-      shell: 'bash',
-      run: std.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version]),
-      'working-directory': '${{ env.dir }}',
+      uses: 'nick-fields/retry@v3',
+      with: {
+        max_attempts: 3,
+        timeout_minutes: 240,
+        command: |||
+          cd ${{ env.dir }}
+          std.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])
+        |||,
+        new_command_on_retry: |||
+          cd ${{ env.dir }}
+          lxc list
+          std.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])
+        |||,
+      },
       env: {
         PACKER_LOG: 1,
       },

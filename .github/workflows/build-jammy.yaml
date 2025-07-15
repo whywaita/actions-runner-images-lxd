@@ -70,9 +70,13 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "packer build -only ubuntu-22_04.lxd.build_image_22_04 ./images/ubuntu/templates/",
-               "shell": "bash",
-               "working-directory": "${{ env.dir }}"
+               "uses": "nick-fields/retry@v3",
+               "with": {
+                  "command": "cd ${{ env.dir }}\nstd.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])\n",
+                  "max_attempts": 3,
+                  "new_command_on_retry": "cd ${{ env.dir }}\nlxc list\nstd.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])\n",
+                  "timeout_minutes": 240
+               }
             },
             {
                "name": "Stop container",
