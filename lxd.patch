@@ -104,11 +104,11 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 05259514..d968ae05 100644
+index 05259514..807ff08d 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
-+source "lxd" "build_image" {
++source "lxd" "build_image_22_04" {
 +  image          = "ubuntu:jammy"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
@@ -116,7 +116,7 @@ index 05259514..d968ae05 100644
 +
  build {
 -  sources = ["source.azure-arm.image"]
-+  sources = ["source.lxd.build_image"]
++  sources = ["source.lxd.build_image_22_04"]
    name = "ubuntu-22_04"
  
    provisioner "shell" {
@@ -234,11 +234,11 @@ index 05259514..d968ae05 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 94f595c3..cc2dc6cf 100644
+index 94f595c3..d2ffcbfc 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 @@ -1,5 +1,11 @@
-+source "lxd" "build_image" {
++source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
@@ -246,7 +246,7 @@ index 94f595c3..cc2dc6cf 100644
 +
  build {
 -  sources = ["source.azure-arm.image"]
-+  sources = ["source.lxd.build_image"]
++  sources = ["source.lxd.build_image_24_04"]
    name = "ubuntu-24_04"
  
    provisioner "shell" {

@@ -77,13 +77,13 @@ function(os_version) {
     {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('packer validate -syntax-only -only ubuntu-%s.lxd.build_image ./images/ubuntu/templates/', os_version),
+      run: std.format('packer validate -syntax-only -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version]),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
       shell: 'bash',
-      run: std.format('packer build -only ubuntu-%s.lxd.build_image ./images/ubuntu/templates/', os_version),
+      run: std.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version]),
       'working-directory': '${{ env.dir }}',
       env: {
         PACKER_LOG: 1,
