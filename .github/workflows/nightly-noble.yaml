@@ -72,10 +72,10 @@
                "name": "packer build packer.json",
                "uses": "nick-fields/retry@v3",
                "with": {
-                  "command": "cd ${{ env.dir }}\nstd.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])\n",
-                  "max_attempts": 3,
-                  "new_command_on_retry": "cd ${{ env.dir }}\nlxc list\nstd.format('packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version])\n",
-                  "timeout_minutes": 240
+                  "command": "cd ${{ env.dir }}\npacker build -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+                  "max_attempts": 2,
+                  "new_command_on_retry": "lxc list\ncd ${{ env.dir }}\npacker build -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+                  "timeout_minutes": 150
                }
             },
             {
