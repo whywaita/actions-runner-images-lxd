@@ -104,7 +104,7 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 05259514..807ff08d 100644
+index 05259514..8e6e9dee 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -120,8 +120,20 @@ index 05259514..807ff08d 100644
    name = "ubuntu-22_04"
  
    provisioner "shell" {
-@@ -9,7 +15,7 @@ build {
+@@ -7,9 +13,19 @@ build {
+     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
+   }
  
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
    provisioner "file" {
      destination = "${var.helper_script_folder}"
 -    source      = "${path.root}/../scripts/helpers"
@@ -129,7 +141,7 @@ index 05259514..807ff08d 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +40,27 @@ build {
+@@ -34,21 +50,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -146,16 +158,16 @@ index 05259514..807ff08d 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen/"
-+  }
-+
-+  provisioner "file" {
-+    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/tests"
++    source      = "${path.root}/../scripts/tests/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen/"
 +  }
@@ -166,7 +178,7 @@ index 05259514..807ff08d 100644
    }
  
    provisioner "file" {
-@@ -174,6 +186,20 @@ build {
+@@ -174,6 +196,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -187,7 +199,7 @@ index 05259514..807ff08d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -182,10 +208,17 @@ build {
+@@ -182,10 +218,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -206,7 +218,7 @@ index 05259514..807ff08d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -206,8 +239,15 @@ build {
+@@ -206,8 +249,15 @@ build {
    }
  
    provisioner "shell" {
@@ -224,7 +236,7 @@ index 05259514..807ff08d 100644
    }
  
    provisioner "file" {
-@@ -246,7 +286,6 @@ build {
+@@ -246,7 +296,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -234,10 +246,10 @@ index 05259514..807ff08d 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 94f595c3..d2ffcbfc 100644
+index 94f595c3..8440bcc3 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-@@ -1,5 +1,11 @@
+@@ -1,7 +1,23 @@
 +source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
@@ -249,8 +261,20 @@ index 94f595c3..d2ffcbfc 100644
 +  sources = ["source.lxd.build_image_24_04"]
    name = "ubuntu-24_04"
  
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
    provisioner "shell" {
-@@ -9,7 +15,7 @@ build {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
+@@ -9,7 +25,7 @@ build {
  
    provisioner "file" {
      destination = "${var.helper_script_folder}"
@@ -259,7 +283,7 @@ index 94f595c3..d2ffcbfc 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +40,27 @@ build {
+@@ -34,21 +50,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -296,7 +320,7 @@ index 94f595c3..d2ffcbfc 100644
    }
  
    provisioner "file" {
-@@ -56,6 +68,20 @@ build {
+@@ -56,6 +78,20 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -317,7 +341,7 @@ index 94f595c3..d2ffcbfc 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -157,6 +183,20 @@ provisioner "shell" {
+@@ -157,6 +193,20 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -338,7 +362,7 @@ index 94f595c3..d2ffcbfc 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -171,7 +211,7 @@ provisioner "shell" {
+@@ -171,7 +221,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -347,7 +371,7 @@ index 94f595c3..d2ffcbfc 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -195,16 +235,23 @@ provisioner "shell" {
+@@ -195,16 +245,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -375,7 +399,7 @@ index 94f595c3..d2ffcbfc 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -225,7 +272,7 @@ provisioner "shell" {
+@@ -225,7 +282,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
