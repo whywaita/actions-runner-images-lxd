@@ -103,217 +103,27 @@ index c138501b..c2c1b78a 100644
  $global:ErrorActionPreference = "Stop"
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
-diff --git a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-index d3486533..b65068cc 100644
---- a/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-+++ b/images/ubuntu/templates/ubuntu-22.04.pkr.hcl
-@@ -1,34 +1,3 @@
--variable "allowed_inbound_ip_addresses" {
--  type    = list(string)
--  default = []
--}
--
--variable "azure_tags" {
--  type    = map(string)
--  default = {}
--}
--
--variable "build_resource_group_name" {
--  type    = string
--  default = "${env("BUILD_RG_NAME")}"
--}
--
--variable "client_cert_path" {
--  type    = string
--  default = "${env("ARM_CLIENT_CERT_PATH")}"
--}
--
--variable "client_id" {
--  type    = string
--  default = "${env("ARM_CLIENT_ID")}"
--}
--
--variable "client_secret" {
--  type      = string
--  default   = "${env("ARM_CLIENT_SECRET")}"
--  sensitive = true
--}
--
- variable "dockerhub_login" {
-   type    = string
-   default = "${env("DOCKERHUB_LOGIN")}"
-@@ -69,170 +38,49 @@ variable "installer_script_folder" {
-   default = "/imagegeneration/installers"
- }
- 
--variable "install_password" {
--  type      = string
--  default   = ""
--  sensitive = true
--}
--
--variable "location" {
--  type    = string
--  default = ""
--}
--
--variable "managed_image_name" {
--  type    = string
--  default = ""
--}
--
--variable "managed_image_resource_group_name" {
--  type    = string
--  default = "${env("ARM_RESOURCE_GROUP")}"
--}
--
--variable "private_virtual_network_with_public_ip" {
--  type    = bool
--  default = false
--}
--
--variable "subscription_id" {
--  type    = string
--  default = "${env("ARM_SUBSCRIPTION_ID")}"
--}
--
--variable "temp_resource_group_name" {
--  type    = string
--  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
--}
--
--variable "tenant_id" {
--  type    = string
--  default = "${env("ARM_TENANT_ID")}"
--}
--
--variable "virtual_network_name" {
--  type    = string
--  default = "${env("VNET_NAME")}"
--}
--
--variable "virtual_network_resource_group_name" {
--  type    = string
--  default = "${env("VNET_RESOURCE_GROUP")}"
--}
--
--variable "virtual_network_subnet_name" {
--  type    = string
--  default = "${env("VNET_SUBNET")}"
--}
--
--variable "vm_size" {
--  type    = string
--  default = "Standard_D4s_v4"
--}
--
--variable "image_offer" {
--  type    = string
--  default = "0001-com-ubuntu-server-jammy"
--}
--
--variable "image_publisher" {
--  type    = string
--  default = "canonical"
--}
--
--variable "image_sku" {
--  type    = string
--  default = "22_04-lts"
--}
--
--variable "gallery_name" {
--  type    = string
--  default = "${env("GALLERY_NAME")}"
--}
--
--variable "gallery_resource_group_name" {
--  type    = string
--  default = "${env("GALLERY_RG_NAME")}"
--}
--
--variable "gallery_image_name" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_NAME")}"
--}
--
--variable "gallery_image_version" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_VERSION")}"
--}
--
--variable "gallery_storage_account_type" {
--  type    = string
--  default = "${env("GALLERY_STORAGE_ACCOUNT_TYPE")}"
--}
--
--variable "use_azure_cli_auth" {
--  type    = bool
--  default = false
-+packer {
-+  required_plugins {
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-+    }
-+  }
- }
- 
--variable "os_disk_size_gb" {
--  type    = number
--  default = 75
-+source "lxd" "build_image" {
+diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
+index 05259514..e001263a 100644
+--- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
+@@ -1,5 +1,11 @@
++source "lxd" "build_image_22_04" {
 +  image          = "ubuntu:jammy"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
- }
++}
++
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_22_04"]
+   name = "ubuntu-22_04"
  
--variable "image_os_type" {
--  type    = string
--  default = "Linux"
--}
-+build {
-+  sources = ["source.lxd.build_image"]
+   provisioner "shell" {
+@@ -7,9 +13,26 @@ build {
+     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
+   }
  
--source "azure-arm" "build_image" {
--  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
--  build_resource_group_name              = "${var.build_resource_group_name}"
--  client_cert_path                       = "${var.client_cert_path}"
--  client_id                              = "${var.client_id}"
--  client_secret                          = "${var.client_secret}"
--  use_azure_cli_auth                     = var.use_azure_cli_auth
--  image_offer                            = "${var.image_offer}"
--  image_publisher                        = "${var.image_publisher}"
--  image_sku                              = "${var.image_sku}"
--  location                               = "${var.location}"
--  managed_image_name                     = "${var.managed_image_name}"
--  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
--  os_disk_size_gb                        = var.os_disk_size_gb
--  os_type                                = var.image_os_type
--  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
--  subscription_id                        = "${var.subscription_id}"
--  temp_resource_group_name               = "${var.temp_resource_group_name}"
--  tenant_id                              = "${var.tenant_id}"
--  virtual_network_name                   = "${var.virtual_network_name}"
--  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
--  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
--  vm_size                                = "${var.vm_size}"
--
--  shared_image_gallery_destination {
--    subscription                         = var.subscription_id
--    gallery_name                         = var.gallery_name
--    resource_group                       = var.gallery_resource_group_name
--    image_name                           = var.gallery_image_name
--    image_version                        = var.gallery_image_version
--    storage_account_type                 = var.gallery_storage_account_type
--  }
--
--  dynamic "azure_tag" {
--    for_each = var.azure_tags
--    content {
--      name = azure_tag.key
--      value = azure_tag.value
--    }
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
@@ -323,31 +133,27 @@ index d3486533..b65068cc 100644
 +      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
 +    ]
 +  }
-+  
++
+   provisioner "file" {
+     destination = "${var.helper_script_folder}"
+-    source      = "${path.root}/../scripts/helpers"
++    source      = "${path.root}/../scripts/helpers/"
++  }
++
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
-+      "mkdir -p ${var.image_folder}",
-+      "chmod 755 ${var.image_folder}",
-+      "mkdir -p ${var.installer_script_folder}",
-+      "chmod 755 ${var.installer_script_folder}",
-+      "mkdir -p ${var.helper_script_folder}",
-+      "chmod 755 ${var.helper_script_folder}"
++      "chmod -R 777 ${var.helper_script_folder}",
 +    ]
    }
--}
--
--build {
--  sources = ["source.azure-arm.build_image"]
  
    provisioner "shell" {
-     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
--    inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
-+    inline          = ["mkdir -p ${var.image_folder}", "chmod 777 ${var.image_folder}"]
-   }
+@@ -34,21 +57,27 @@ build {
  
    provisioner "file" {
-@@ -266,16 +114,22 @@ build {
+     destination = "${var.installer_script_folder}"
+-    source      = "${path.root}/../scripts/build"
++    source      = "${path.root}/../scripts/build/"
    }
  
    provisioner "file" {
@@ -358,26 +164,28 @@ index d3486533..b65068cc 100644
 -      "${path.root}/../scripts/docs-gen"
 -    ]
 +    destination = "/imagegeneration/post-gen"
-+    source      = "${path.root}/../assets/post-gen"
++    source      = "${path.root}/../assets/post-gen/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests"
++    source      = "${path.root}/../scripts/tests/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
+-    source      = "${path.root}/../../../helpers/software-report-base"
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
-     source      = "${path.root}/../../../helpers/software-report-base"
++    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
-@@ -402,6 +256,13 @@ build {
+   provisioner "file" {
+@@ -174,6 +203,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -388,10 +196,17 @@ index d3486533..b65068cc 100644
 +    ]
 +  }
 +
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "gpasswd -a runner docker"
++    ]
++  }
++
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -410,10 +271,17 @@ build {
+@@ -182,10 +225,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -410,7 +225,7 @@ index d3486533..b65068cc 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -434,8 +302,15 @@ build {
+@@ -206,8 +256,15 @@ build {
    }
  
    provisioner "shell" {
@@ -428,7 +243,7 @@ index d3486533..b65068cc 100644
    }
  
    provisioner "file" {
-@@ -468,7 +343,6 @@ build {
+@@ -246,7 +303,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -437,227 +252,22 @@ index d3486533..b65068cc 100644
    }
 -
  }
-diff --git a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-index 65eba995..52bb2c6b 100644
---- a/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-+++ b/images/ubuntu/templates/ubuntu-24.04.pkr.hcl
-@@ -1,44 +1,3 @@
--variable "allowed_inbound_ip_addresses" {
--  type    = list(string)
--  default = []
--}
--
--variable "azure_tags" {
--  type    = map(string)
--  default = {}
--}
--
--variable "build_resource_group_name" {
--  type    = string
--  default = "${env("BUILD_RG_NAME")}"
--}
--
--variable "client_cert_path" {
--  type    = string
--  default = "${env("ARM_CLIENT_CERT_PATH")}"
--}
--
--variable "client_id" {
--  type    = string
--  default = "${env("ARM_CLIENT_ID")}"
--}
--
--variable "client_secret" {
--  type      = string
--  default   = "${env("ARM_CLIENT_SECRET")}"
--  sensitive = true
--}
--
--variable "dockerhub_login" {
--  type    = string
--  default = "${env("DOCKERHUB_LOGIN")}"
--}
--
--variable "dockerhub_password" {
--  type    = string
--  default = "${env("DOCKERHUB_PASSWORD")}"
--}
--
- variable "helper_script_folder" {
-   type    = string
-   default = "/imagegeneration/helpers"
-@@ -69,170 +28,49 @@ variable "installer_script_folder" {
-   default = "/imagegeneration/installers"
- }
- 
--variable "install_password" {
--  type      = string
--  default   = ""
--  sensitive = true
--}
--
--variable "location" {
--  type    = string
--  default = ""
--}
--
--variable "managed_image_name" {
--  type    = string
--  default = ""
--}
--
--variable "managed_image_resource_group_name" {
--  type    = string
--  default = "${env("ARM_RESOURCE_GROUP")}"
--}
--
--variable "private_virtual_network_with_public_ip" {
--  type    = bool
--  default = false
--}
--
--variable "subscription_id" {
--  type    = string
--  default = "${env("ARM_SUBSCRIPTION_ID")}"
--}
--
--variable "temp_resource_group_name" {
--  type    = string
--  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
--}
--
--variable "tenant_id" {
--  type    = string
--  default = "${env("ARM_TENANT_ID")}"
--}
--
--variable "virtual_network_name" {
--  type    = string
--  default = "${env("VNET_NAME")}"
--}
--
--variable "virtual_network_resource_group_name" {
--  type    = string
--  default = "${env("VNET_RESOURCE_GROUP")}"
--}
--
--variable "virtual_network_subnet_name" {
--  type    = string
--  default = "${env("VNET_SUBNET")}"
--}
--
--variable "vm_size" {
--  type    = string
--  default = "Standard_D4s_v4"
--}
--
--variable "image_offer" {
--  type    = string
--  default = "ubuntu-24_04-lts"
--}
--
--variable "image_publisher" {
--  type    = string
--  default = "canonical"
--}
--
--variable "image_sku" {
--  type    = string
--  default = "server-gen1"
--}
--
--variable "gallery_name" {
--  type    = string
--  default = "${env("GALLERY_NAME")}"
--}
--
--variable "gallery_resource_group_name" {
--  type    = string
--  default = "${env("GALLERY_RG_NAME")}"
--}
--
--variable "gallery_image_name" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_NAME")}"
--}
--
--variable "gallery_image_version" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_VERSION")}"
--}
--
--variable "gallery_storage_account_type" {
--  type    = string
--  default = "${env("GALLERY_STORAGE_ACCOUNT_TYPE")}"
--}
--
--variable "use_azure_cli_auth" {
--  type    = bool
--  default = false
-+packer {
-+  required_plugins {
-+    lxd = {
-+      source  = "github.com/hashicorp/lxd"
-+      version = "1.0.2"
-+    }
-+  }
- }
- 
--variable "os_disk_size_gb" {
--  type    = number
--  default = 75
-+source "lxd" "build_image" {
+diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
+index 94f595c3..ef268256 100644
+--- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
+@@ -1,7 +1,23 @@
++source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
 +  skip_publish   = true
- }
++}
++
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_24_04"]
+   name = "ubuntu-24_04"
  
--variable "image_os_type" {
--  type    = string
--  default = "Linux"
--}
-+build {
-+  sources = ["source.lxd.build_image"]
- 
--source "azure-arm" "build_image" {
--  allowed_inbound_ip_addresses           = "${var.allowed_inbound_ip_addresses}"
--  build_resource_group_name              = "${var.build_resource_group_name}"
--  client_cert_path                       = "${var.client_cert_path}"
--  client_id                              = "${var.client_id}"
--  client_secret                          = "${var.client_secret}"
--  use_azure_cli_auth                     = var.use_azure_cli_auth
--  image_offer                            = "${var.image_offer}"
--  image_publisher                        = "${var.image_publisher}"
--  image_sku                              = "${var.image_sku}"
--  location                               = "${var.location}"
--  managed_image_name                     = "${var.managed_image_name}"
--  managed_image_resource_group_name      = "${var.managed_image_resource_group_name}"
--  os_disk_size_gb                        = var.os_disk_size_gb
--  os_type                                = var.image_os_type
--  private_virtual_network_with_public_ip = "${var.private_virtual_network_with_public_ip}"
--  subscription_id                        = "${var.subscription_id}"
--  temp_resource_group_name               = "${var.temp_resource_group_name}"
--  tenant_id                              = "${var.tenant_id}"
--  virtual_network_name                   = "${var.virtual_network_name}"
--  virtual_network_resource_group_name    = "${var.virtual_network_resource_group_name}"
--  virtual_network_subnet_name            = "${var.virtual_network_subnet_name}"
--  vm_size                                = "${var.vm_size}"
--
--  shared_image_gallery_destination {
--    subscription                         = var.subscription_id
--    gallery_name                         = var.gallery_name
--    resource_group                       = var.gallery_resource_group_name
--    image_name                           = var.gallery_image_name
--    image_version                        = var.gallery_image_version
--    storage_account_type                 = var.gallery_storage_account_type
--  }
--
--  dynamic "azure_tag" {
--    for_each = var.azure_tags
--    content {
--      name = azure_tag.key
--      value = azure_tag.value
--    }
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
@@ -666,31 +276,33 @@ index 65eba995..52bb2c6b 100644
 +      "gpasswd -a runner sudo",
 +      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
 +    ]
-   }
--}
++  }
++
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
+@@ -9,7 +25,14 @@ build {
  
--build {
--  sources = ["source.azure-arm.build_image"]
+   provisioner "file" {
+     destination = "${var.helper_script_folder}"
+-    source      = "${path.root}/../scripts/helpers"
++    source      = "${path.root}/../scripts/helpers/"
++  }
++
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
-+      "mkdir -p ${var.image_folder}",
-+      "chmod 755 ${var.image_folder}",
-+      "mkdir -p ${var.installer_script_folder}",
-+      "chmod 755 ${var.installer_script_folder}",
-+      "mkdir -p ${var.helper_script_folder}",
-+      "chmod 755 ${var.helper_script_folder}"
++      "chmod -R 777 ${var.helper_script_folder}",
 +    ]
-+  }
- 
-   provisioner "shell" {
-     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
--    inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
-+    inline          = ["mkdir -p ${var.image_folder}", "chmod 777 ${var.image_folder}"]
    }
  
+   provisioner "shell" {
+@@ -34,21 +57,27 @@ build {
+ 
    provisioner "file" {
-@@ -266,16 +104,22 @@ build {
+     destination = "${var.installer_script_folder}"
+-    source      = "${path.root}/../scripts/build"
++    source      = "${path.root}/../scripts/build/"
    }
  
    provisioner "file" {
@@ -701,26 +313,28 @@ index 65eba995..52bb2c6b 100644
 -      "${path.root}/../scripts/docs-gen"
 -    ]
 +    destination = "/imagegeneration/post-gen"
-+    source      = "${path.root}/../assets/post-gen"
++    source      = "${path.root}/../assets/post-gen/"
 +  }
 +
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests"
-+  }
-+
-+  provisioner "file" {
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen"
++    source      = "${path.root}/../scripts/tests/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
+-    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
-     source      = "${path.root}/../../../helpers/software-report-base"
++    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
-@@ -284,6 +128,13 @@ build {
+   provisioner "file" {
+@@ -56,6 +85,20 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -731,10 +345,17 @@ index 65eba995..52bb2c6b 100644
 +    ]
 +  }
 +
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "sudo chmod 777 ${var.installer_script_folder}/toolset.json"
++    ]
++  }
++
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -385,6 +236,13 @@ provisioner "shell" {
+@@ -157,6 +200,20 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -745,10 +366,17 @@ index 65eba995..52bb2c6b 100644
 +    ]
 +  }
 +
++  provisioner "shell" {
++    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline           = [
++      "gpasswd -a runner docker"
++    ]
++  }
++
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -399,7 +257,7 @@ provisioner "shell" {
+@@ -171,7 +228,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -757,7 +385,7 @@ index 65eba995..52bb2c6b 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -423,16 +281,23 @@ provisioner "shell" {
+@@ -195,16 +252,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -785,7 +413,7 @@ index 65eba995..52bb2c6b 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -447,7 +312,7 @@ provisioner "shell" {
+@@ -225,7 +289,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -794,3 +422,222 @@ index 65eba995..52bb2c6b 100644
    }
  
  }
+diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
+deleted file mode 100644
+index fe9b189a..00000000
+--- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
++++ /dev/null
+@@ -1,18 +0,0 @@
+-locals {
+-  image_properties_map = {
+-      "ubuntu22" = {
+-            publisher       = "canonical"
+-            offer           = "0001-com-ubuntu-server-jammy"
+-            sku             = "22_04-lts"
+-            os_disk_size_gb = coalesce(var.os_disk_size_gb, 75)
+-      },
+-      "ubuntu24" = {
+-            publisher       = "canonical"
+-            offer           = "ubuntu-24_04-lts"
+-            sku             = "server-gen1"
+-            os_disk_size_gb = coalesce(var.os_disk_size_gb, 75)
+-      }
+-  }
+-
+-  image_properties = local.image_properties_map[var.image_os]
+-}
+diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
+index 4080b9b8..a0fc7d33 100644
+--- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
++++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
+@@ -1,48 +1,8 @@
+-source "azure-arm" "image" {
+-  client_cert_path                       = var.client_cert_path
+-  client_id                              = var.client_id
+-  client_secret                          = var.client_secret
+-  object_id                              = var.object_id
+-  oidc_request_token                     = var.oidc_request_token
+-  oidc_request_url                       = var.oidc_request_url
+-  subscription_id                        = var.subscription_id
+-  tenant_id                              = var.tenant_id
+-  use_azure_cli_auth                     = var.use_azure_cli_auth
+-
+-  allowed_inbound_ip_addresses           = var.allowed_inbound_ip_addresses
+-  build_resource_group_name              = var.build_resource_group_name
+-  image_offer                            = local.image_properties.offer
+-  image_publisher                        = local.image_properties.publisher
+-  image_sku                              = local.image_properties.sku
+-  image_version                          = var.source_image_version
+-  location                               = var.location
+-  managed_image_name                     = var.managed_image_name
+-  managed_image_resource_group_name      = var.managed_image_resource_group_name
+-  managed_image_storage_account_type     = var.managed_image_storage_account_type
+-  os_disk_size_gb                        = local.image_properties.os_disk_size_gb
+-  os_type                                = var.image_os_type
+-  private_virtual_network_with_public_ip = var.private_virtual_network_with_public_ip
+-  temp_resource_group_name               = var.temp_resource_group_name
+-  virtual_network_name                   = var.virtual_network_name
+-  virtual_network_resource_group_name    = var.virtual_network_resource_group_name
+-  virtual_network_subnet_name            = var.virtual_network_subnet_name
+-  vm_size                                = var.vm_size
+-  winrm_username                         = var.winrm_username
+-
+-  shared_image_gallery_destination {
+-    subscription                         = var.subscription_id
+-    gallery_name                         = var.gallery_name
+-    resource_group                       = var.gallery_resource_group_name
+-    image_name                           = var.gallery_image_name
+-    image_version                        = var.gallery_image_version
+-    storage_account_type                 = var.gallery_storage_account_type
+-  }
+-
+-  dynamic "azure_tag" {
+-    for_each = var.azure_tags
+-    content {
+-      name  = azure_tag.key
+-      value = azure_tag.value
++packer {
++  required_plugins {
++    lxd = {
++      source  = "github.com/hashicorp/lxd"
++      version = "1.0.3"
+     }
+   }
+ }
+diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
+index e2c6aaf7..1578cf67 100644
+--- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
++++ b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
+@@ -1,132 +1,3 @@
+-// Authentication related variables
+-variable "client_cert_path" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_CERT_PATH")}"
+-}
+-variable "client_id" {
+-  type    = string
+-  default = "${env("ARM_CLIENT_ID")}"
+-}
+-variable "client_secret" {
+-  type      = string
+-  default   = "${env("ARM_CLIENT_SECRET")}"
+-  sensitive = true
+-}
+-variable "object_id" {
+-  type    = string
+-  default = "${env("ARM_OBJECT_ID")}"
+-}
+-variable "oidc_request_token" {
+-  type    = string
+-  default = ""
+-}
+-variable "oidc_request_url" {
+-  type    = string
+-  default = ""
+-}
+-variable "subscription_id" {
+-  type    = string
+-  default = "${env("ARM_SUBSCRIPTION_ID")}"
+-}
+-variable "tenant_id" {
+-  type    = string
+-  default = "${env("ARM_TENANT_ID")}"
+-}
+-variable "use_azure_cli_auth" {
+-  type    = bool
+-  default = false
+-}
+-
+-// Azure environment related variables
+-variable "allowed_inbound_ip_addresses" {
+-  type    = list(string)
+-  default = []
+-}
+-variable "azure_tags" {
+-  type    = map(string)
+-  default = {}
+-}
+-variable "build_resource_group_name" {
+-  type    = string
+-  default = "${env("BUILD_RG_NAME")}"
+-}
+-variable "gallery_image_name" {
+-  type    = string
+-  default = "${env("GALLERY_IMAGE_NAME")}"
+-}
+-variable "gallery_image_version" {
+-  type    = string
+-  default = "${env("GALLERY_IMAGE_VERSION")}"
+-}
+-variable "gallery_name" {
+-  type    = string
+-  default = "${env("GALLERY_NAME")}"
+-}
+-variable "gallery_resource_group_name" {
+-  type    = string
+-  default = "${env("GALLERY_RG_NAME")}"
+-}
+-variable "gallery_storage_account_type" {
+-  type    = string
+-  default = "${env("GALLERY_STORAGE_ACCOUNT_TYPE")}"
+-}
+-variable "image_os_type" {
+-  type    = string
+-  default = "Linux"
+-}
+-variable "location" {
+-  type    = string
+-  default = ""
+-}
+-variable "managed_image_name" {
+-  type    = string
+-  default = ""
+-}
+-variable "managed_image_resource_group_name" {
+-  type    = string
+-  default = "${env("ARM_RESOURCE_GROUP")}"
+-}
+-variable "managed_image_storage_account_type" {
+-  type    = string
+-  default = "Premium_LRS"
+-}
+-variable "private_virtual_network_with_public_ip" {
+-  type    = bool
+-  default = false
+-}
+-variable "os_disk_size_gb" {
+-  type    = number
+-  default = null
+-}
+-variable "source_image_version" {
+-  type    = string
+-  default = "latest"
+-}
+-variable "temp_resource_group_name" {
+-  type    = string
+-  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
+-}
+-variable "virtual_network_name" {
+-  type    = string
+-  default = "${env("VNET_NAME")}"
+-}
+-variable "virtual_network_resource_group_name" {
+-  type    = string
+-  default = "${env("VNET_RESOURCE_GROUP")}"
+-}
+-variable "virtual_network_subnet_name" {
+-  type    = string
+-  default = "${env("VNET_SUBNET")}"
+-}
+-variable "vm_size" {
+-  type    = string
+-  default = "Standard_D4s_v4"
+-}
+-variable "winrm_username" {         // The username used to connect to the VM via WinRM
+-    type    = string                // Also applies to the username used to create the VM
+-    default = "packer"
+-}
+-
+ // Image related variables
+ variable "dockerhub_login" {
+   type    = string

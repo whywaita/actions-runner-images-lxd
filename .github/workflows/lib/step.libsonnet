@@ -1,4 +1,4 @@
-local packer_def_path(os_version) = std.format('images/ubuntu/templates/ubuntu-%s.pkr.hcl', os_version);
+local packer_def_path(os_version) = std.format('images/ubuntu/templates/build.ubuntu-%s.pkr.hcl', os_version);
 
 function(os_version) {
   steps: [
@@ -71,20 +71,30 @@ function(os_version) {
     {
       name: 'packer init',
       shell: 'bash',
-      run: std.format('packer init %s', packer_def_path(os_version)),
+      run: 'packer init ./images/ubuntu/templates/',
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer validate packer.json',
       shell: 'bash',
-      run: std.format('packer validate -syntax-only %s', packer_def_path(os_version)),
+      run: std.format('packer validate -syntax-only -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/', [os_version, os_version]),
       'working-directory': '${{ env.dir }}',
     },
     {
       name: 'packer build packer.json',
-      shell: 'bash',
-      run: std.format('packer build -on-error=abort %s', packer_def_path(os_version)),
-      'working-directory': '${{ env.dir }}',
+      uses: 'nick-fields/retry@v3',
+      with: {
+        max_attempts: 2,
+        timeout_minutes: 150,
+        command: 'cd ${{ env.dir }}\n' + std.format(
+          'packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/',
+          [os_version, os_version]
+        ),
+        new_command_on_retry: 'lxc list\ncd ${{ env.dir }}\n' + std.format(
+          'packer build -only ubuntu-%s.lxd.build_image_%s ./images/ubuntu/templates/',
+          [os_version, os_version]
+        ),
+      },
       env: {
         PACKER_LOG: 1,
       },
@@ -132,8 +142,8 @@ function(os_version) {
       name: 'Upload SoftwareReport.md',
       uses: 'actions/upload-artifact@v4',
       with: {
-        name: std.format('Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
-        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, ".", "")),
+        name: std.format('Ubuntu%s-Readme.md', std.strReplace(os_version, "_", "")),
+        path: std.format('./runner-images/images/ubuntu/Ubuntu%s-Readme.md', std.strReplace(os_version, "_", "")),
         'retention-days': 5,
       },
     },

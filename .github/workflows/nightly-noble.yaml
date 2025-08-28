@@ -1,4 +1,7 @@
 {
+   "env": {
+      "PACKER_GITHUB_API_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
+   },
    "jobs": {
       "build-noble": {
          "runs-on": "ubuntu-22.04",
@@ -52,13 +55,13 @@
             },
             {
                "name": "packer init",
-               "run": "packer init images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
+               "run": "packer init ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
             {
                "name": "packer validate packer.json",
-               "run": "packer validate -syntax-only images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
+               "run": "packer validate -syntax-only -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -67,9 +70,13 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "packer build -on-error=abort images/ubuntu/templates/ubuntu-24.04.pkr.hcl",
-               "shell": "bash",
-               "working-directory": "${{ env.dir }}"
+               "uses": "nick-fields/retry@v3",
+               "with": {
+                  "command": "cd ${{ env.dir }}\npacker build -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+                  "max_attempts": 2,
+                  "new_command_on_retry": "lxc list\ncd ${{ env.dir }}\npacker build -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+                  "timeout_minutes": 150
+               }
             },
             {
                "name": "Stop container",
@@ -95,7 +102,7 @@
                "name": "Upload artifact",
                "uses": "actions/upload-artifact@v4",
                "with": {
-                  "name": "virtual-environments-lxd-24.04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
+                  "name": "virtual-environments-lxd-24_04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }
