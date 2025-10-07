@@ -53,23 +53,20 @@ index ac9dcdff..fc23d9fc 100644
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index f450f963..6462f750 100644
+index 5a500091..f15bd634 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-@@ -65,10 +65,10 @@ for version in ${dotnet_versions[@]}; do
+@@ -43,8 +43,8 @@ sdks=()
+ for version in ${dotnet_versions[@]}; do
      release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
      releases=$(cat "$(download_with_retry "$release_url")")
-     if [[ $version == "6.0" ]]; then
--        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r 'first(.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r 'first(.sdks[]?.version | select(contains("preview") or contains("rc") | not))'))
-     else
--        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdk.version | select(contains("preview") or contains("rc") | not)'))
--        sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
-+        sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2021-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
-     fi
+-    sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdk.version | select(contains("preview") or contains("rc") | not)'))
+-    sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
++    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2024-12-01")' | jq -r '.sdk.version | select(contains("preview") or contains("rc") | not)'))
++    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2024-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
  done
  
+ sorted_sdks=$(echo ${sdks[@]} | tr ' ' '\n' | sort -r | uniq -w 5)
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
 index c8f2b682..1da414ab 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
@@ -104,7 +101,7 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 05259514..e001263a 100644
+index 5784ff0b..05a39c8c 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -253,7 +250,7 @@ index 05259514..e001263a 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 94f595c3..ef268256 100644
+index 30d6c6c1..b2e7d16d 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 @@ -1,7 +1,23 @@
@@ -423,10 +420,9 @@ index 94f595c3..ef268256 100644
  
  }
 diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-deleted file mode 100644
-index fe9b189a..00000000
+index fe9b189a..e69de29b 100644
 --- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-+++ /dev/null
++++ b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
 @@ -1,18 +0,0 @@
 -locals {
 -  image_properties_map = {
