@@ -457,10 +457,10 @@ index fe9b189a..e69de29b 100644
 -  image_properties = local.image_properties_map[var.image_os]
 -}
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index 4080b9b8..a0fc7d33 100644
+index e29daccc..5a02da01 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-@@ -1,48 +1,8 @@
+@@ -1,49 +1,8 @@
 -source "azure-arm" "image" {
 -  client_cert_path                       = var.client_cert_path
 -  client_id                              = var.client_id
@@ -485,6 +485,7 @@ index 4080b9b8..a0fc7d33 100644
 -  os_disk_size_gb                        = local.image_properties.os_disk_size_gb
 -  os_type                                = var.image_os_type
 -  private_virtual_network_with_public_ip = var.private_virtual_network_with_public_ip
+-  ssh_clear_authorized_keys              = var.ssh_clear_authorized_keys
 -  temp_resource_group_name               = var.temp_resource_group_name
 -  virtual_network_name                   = var.virtual_network_name
 -  virtual_network_resource_group_name    = var.virtual_network_resource_group_name
@@ -513,12 +514,14 @@ index 4080b9b8..a0fc7d33 100644
 +      version = "1.0.3"
      }
    }
- }
+-}
++}
+\ No newline at end of file
 diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-index e2c6aaf7..1578cf67 100644
+index ef48d309..321e79fa 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-@@ -1,132 +1,3 @@
+@@ -1,136 +1,3 @@
 -// Authentication related variables
 -variable "client_cert_path" {
 -  type    = string
@@ -623,6 +626,10 @@ index e2c6aaf7..1578cf67 100644
 -  type    = string
 -  default = "latest"
 -}
+-variable "ssh_clear_authorized_keys" {
+-  type    = bool
+-  default = true
+-}
 -variable "temp_resource_group_name" {
 -  type    = string
 -  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
@@ -651,3 +658,10 @@ index e2c6aaf7..1578cf67 100644
  // Image related variables
  variable "dockerhub_login" {
    type    = string
+@@ -172,4 +39,4 @@ variable "install_password" {
+ variable "install_user" {
+   type    = string
+   default = "installer"
+-}
++}
+\ No newline at end of file
