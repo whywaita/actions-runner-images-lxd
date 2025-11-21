@@ -23,7 +23,7 @@ index 294c8f1b..bfc28952 100644
 +UserId=$(cut -d: -f1,3 /etc/passwd | grep "runner:" | cut -d: -f2)
  loginctl enable-linger $UserId
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 27a607fe..e4c0736d 100644
+index 609d31ab..893e4e6b 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
 @@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -115,7 +115,7 @@ index b25ed75f..c83c9044 100644
  }
  
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 5784ff0b..05a39c8c 100644
+index 5784ff0b..300d6bb5 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -131,11 +131,12 @@ index 5784ff0b..05a39c8c 100644
    name = "ubuntu-22_04"
  
    provisioner "shell" {
-@@ -7,9 +13,26 @@ build {
+@@ -7,9 +13,27 @@ build {
      inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
    }
  
 +  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
 +      "apt-get update -y; apt-get install whois",
@@ -159,7 +160,7 @@ index 5784ff0b..05a39c8c 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +57,27 @@ build {
+@@ -34,21 +58,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -196,7 +197,7 @@ index 5784ff0b..05a39c8c 100644
    }
  
    provisioner "file" {
-@@ -174,6 +203,20 @@ build {
+@@ -174,6 +204,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -217,7 +218,7 @@ index 5784ff0b..05a39c8c 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -182,10 +225,17 @@ build {
+@@ -182,10 +226,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -236,7 +237,7 @@ index 5784ff0b..05a39c8c 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -206,8 +256,15 @@ build {
+@@ -206,8 +257,15 @@ build {
    }
  
    provisioner "shell" {
@@ -254,7 +255,7 @@ index 5784ff0b..05a39c8c 100644
    }
  
    provisioner "file" {
-@@ -246,7 +303,6 @@ build {
+@@ -246,7 +304,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -264,10 +265,10 @@ index 5784ff0b..05a39c8c 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 30d6c6c1..b2e7d16d 100644
+index 30d6c6c1..1e83074f 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-@@ -1,7 +1,23 @@
+@@ -1,7 +1,24 @@
 +source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
@@ -280,6 +281,7 @@ index 30d6c6c1..b2e7d16d 100644
    name = "ubuntu-24_04"
  
 +  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
 +      "apt-get update -y; apt-get install whois",
@@ -292,7 +294,7 @@ index 30d6c6c1..b2e7d16d 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
-@@ -9,7 +25,14 @@ build {
+@@ -9,7 +26,14 @@ build {
  
    provisioner "file" {
      destination = "${var.helper_script_folder}"
@@ -308,7 +310,7 @@ index 30d6c6c1..b2e7d16d 100644
    }
  
    provisioner "shell" {
-@@ -34,21 +57,27 @@ build {
+@@ -34,21 +58,27 @@ build {
  
    provisioner "file" {
      destination = "${var.installer_script_folder}"
@@ -345,7 +347,7 @@ index 30d6c6c1..b2e7d16d 100644
    }
  
    provisioner "file" {
-@@ -56,6 +85,20 @@ build {
+@@ -56,6 +86,20 @@ build {
      source      = "${path.root}/../toolsets/toolset-2404.json"
    }
  
@@ -366,7 +368,7 @@ index 30d6c6c1..b2e7d16d 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -157,6 +200,20 @@ provisioner "shell" {
+@@ -157,6 +201,20 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -387,7 +389,7 @@ index 30d6c6c1..b2e7d16d 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -171,7 +228,7 @@ provisioner "shell" {
+@@ -171,7 +229,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -396,7 +398,7 @@ index 30d6c6c1..b2e7d16d 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -195,16 +252,23 @@ provisioner "shell" {
+@@ -195,16 +253,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -424,7 +426,7 @@ index 30d6c6c1..b2e7d16d 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -225,7 +289,7 @@ provisioner "shell" {
+@@ -225,7 +290,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
