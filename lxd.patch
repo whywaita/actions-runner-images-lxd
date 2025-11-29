@@ -23,7 +23,7 @@ index 294c8f1b..bfc28952 100644
 +UserId=$(cut -d: -f1,3 /etc/passwd | grep "runner:" | cut -d: -f2)
  loginctl enable-linger $UserId
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 609d31ab..893e4e6b 100644
+index 609d31ab..3dc7fc63 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
 @@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -36,11 +36,12 @@ index 609d31ab..893e4e6b 100644
 +#sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
 +#sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
 +#sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
-
+ 
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
-@@ -82,4 +82,4 @@ fi
-
+@@ -80,5 +80,5 @@ if is_ubuntu22; then
+ fi
+ 
  # Disable man-db auto update
 -echo "set man-db/auto-update false" | debconf-communicate
 -dpkg-reconfigure man-db
@@ -122,7 +123,7 @@ index b25ed75f..c83c9044 100644
  }
  
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index 5784ff0b..300d6bb5 100644
+index e306c9e7..e36675a4 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -204,7 +205,7 @@ index 5784ff0b..300d6bb5 100644
    }
  
    provisioner "file" {
-@@ -174,6 +204,20 @@ build {
+@@ -173,6 +203,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -225,7 +226,7 @@ index 5784ff0b..300d6bb5 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -182,10 +226,17 @@ build {
+@@ -181,10 +225,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -244,7 +245,7 @@ index 5784ff0b..300d6bb5 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -206,8 +257,15 @@ build {
+@@ -210,8 +261,15 @@ build {
    }
  
    provisioner "shell" {
@@ -262,7 +263,7 @@ index 5784ff0b..300d6bb5 100644
    }
  
    provisioner "file" {
-@@ -246,7 +304,6 @@ build {
+@@ -250,7 +308,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -272,7 +273,7 @@ index 5784ff0b..300d6bb5 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 30d6c6c1..1e83074f 100644
+index 781fcccf..c6cba67a 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 @@ -1,7 +1,24 @@
@@ -375,7 +376,7 @@ index 30d6c6c1..1e83074f 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -157,6 +201,20 @@ provisioner "shell" {
+@@ -156,6 +200,20 @@ provisioner "shell" {
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -396,7 +397,7 @@ index 30d6c6c1..1e83074f 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -171,7 +229,7 @@ provisioner "shell" {
+@@ -170,7 +228,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -405,7 +406,7 @@ index 30d6c6c1..1e83074f 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -195,16 +253,23 @@ provisioner "shell" {
+@@ -199,16 +257,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -433,7 +434,7 @@ index 30d6c6c1..1e83074f 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -225,7 +290,7 @@ provisioner "shell" {
+@@ -229,7 +294,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -443,30 +444,27 @@ index 30d6c6c1..1e83074f 100644
  
  }
 diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-index fe9b189a..e69de29b 100644
+index 469493d3..8b137891 100644
 --- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-@@ -1,18 +0,0 @@
+@@ -1,15 +1 @@
 -locals {
 -  image_properties_map = {
 -      "ubuntu22" = {
--            publisher       = "canonical"
--            offer           = "0001-com-ubuntu-server-jammy"
--            sku             = "22_04-lts"
--            os_disk_size_gb = coalesce(var.os_disk_size_gb, 75)
+-            source_image_marketplace_sku = "canonical:0001-com-ubuntu-server-jammy:22_04-lts"
+-            os_disk_size_gb = 75
 -      },
 -      "ubuntu24" = {
--            publisher       = "canonical"
--            offer           = "ubuntu-24_04-lts"
--            sku             = "server-gen1"
--            os_disk_size_gb = coalesce(var.os_disk_size_gb, 75)
+-            source_image_marketplace_sku = "canonical:ubuntu-24_04-lts:server-gen1"
+-            os_disk_size_gb = 75
 -      }
 -  }
--
--  image_properties = local.image_properties_map[var.image_os]
+ 
+-  source_image_marketplace_sku = local.image_properties_map[var.image_os].source_image_marketplace_sku
+-  os_disk_size_gb = coalesce(var.os_disk_size_gb, local.image_properties_map[var.image_os].os_disk_size_gb)
 -}
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index e29daccc..5a02da01 100644
+index babc3cb5..a0fc7d33 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
 @@ -1,49 +1,8 @@
@@ -483,15 +481,15 @@ index e29daccc..5a02da01 100644
 -
 -  allowed_inbound_ip_addresses           = var.allowed_inbound_ip_addresses
 -  build_resource_group_name              = var.build_resource_group_name
--  image_offer                            = local.image_properties.offer
--  image_publisher                        = local.image_properties.publisher
--  image_sku                              = local.image_properties.sku
+-  image_publisher                        = split(":", local.source_image_marketplace_sku)[0]
+-  image_offer                            = split(":", local.source_image_marketplace_sku)[1]
+-  image_sku                              = split(":", local.source_image_marketplace_sku)[2]
 -  image_version                          = var.source_image_version
 -  location                               = var.location
 -  managed_image_name                     = var.managed_image_name
 -  managed_image_resource_group_name      = var.managed_image_resource_group_name
 -  managed_image_storage_account_type     = var.managed_image_storage_account_type
--  os_disk_size_gb                        = local.image_properties.os_disk_size_gb
+-  os_disk_size_gb                        = local.os_disk_size_gb
 -  os_type                                = var.image_os_type
 -  private_virtual_network_with_public_ip = var.private_virtual_network_with_public_ip
 -  ssh_clear_authorized_keys              = var.ssh_clear_authorized_keys
@@ -523,9 +521,7 @@ index e29daccc..5a02da01 100644
 +      version = "1.0.3"
      }
    }
--}
-+}
-\ No newline at end of file
+ }
 diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 index ef48d309..321e79fa 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
