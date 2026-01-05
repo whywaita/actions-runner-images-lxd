@@ -1,5 +1,5 @@
 diff --git a/images/ubuntu/assets/post-gen/environment-variables.sh b/images/ubuntu/assets/post-gen/environment-variables.sh
-index 975c8a4a..016995a1 100644
+index 975c8a4..016995a 100644
 --- a/images/ubuntu/assets/post-gen/environment-variables.sh
 +++ b/images/ubuntu/assets/post-gen/environment-variables.sh
 @@ -2,5 +2,5 @@
@@ -12,7 +12,7 @@ index 975c8a4a..016995a1 100644
 +homeDir=$(cut -d: -f1,6 /etc/passwd | grep "runner:" | cut -d: -f2)
 +sed -i "s|\$HOME|$homeDir|g" /etc/environment
 diff --git a/images/ubuntu/assets/post-gen/systemd-linger.sh b/images/ubuntu/assets/post-gen/systemd-linger.sh
-index 294c8f1b..bfc28952 100644
+index 294c8f1..bfc2895 100644
 --- a/images/ubuntu/assets/post-gen/systemd-linger.sh
 +++ b/images/ubuntu/assets/post-gen/systemd-linger.sh
 @@ -1,5 +1,5 @@
@@ -23,7 +23,7 @@ index 294c8f1b..bfc28952 100644
 +UserId=$(cut -d: -f1,3 /etc/passwd | grep "runner:" | cut -d: -f2)
  loginctl enable-linger $UserId
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 609d31ab..3dc7fc63 100644
+index 609d31a..3dc7fc6 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
 @@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
@@ -47,8 +47,23 @@ index 609d31ab..3dc7fc63 100644
 -dpkg-reconfigure man-db
 +# echo "set man-db/auto-update false" | debconf-communicate
 +# dpkg-reconfigure man-db
+diff --git a/images/ubuntu/scripts/build/install-android-sdk.sh b/images/ubuntu/scripts/build/install-android-sdk.sh
+index 78de3d6..4d58cbc 100644
+--- a/images/ubuntu/scripts/build/install-android-sdk.sh
++++ b/images/ubuntu/scripts/build/install-android-sdk.sh
+@@ -99,6 +99,10 @@ additional=$(get_toolset_value '.android.additional_tools[]')
+ components=("${extras[@]}" "${addons[@]}" "${additional[@]}")
+ 
+ for ndk_major_version in "${android_ndk_major_versions[@]}"; do
++    # LXD: Skip NDK versions released before 2025 (r28+ is released in 2025)
++    if [[ "$ndk_major_version" -lt 28 ]]; then
++        continue
++    fi
+     ndk_full_version=$(get_full_ndk_version $ndk_major_version)
+     components+=("ndk;$ndk_full_version")
+ done
 diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubuntu/scripts/build/install-container-tools.sh
-index ac9dcdff..fc23d9fc 100644
+index ac9dcdf..fc23d9f 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
 @@ -30,4 +30,8 @@ apt-get install ${install_packages[@]}
@@ -61,11 +76,17 @@ index ac9dcdff..fc23d9fc 100644
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index 5a500091..0c91d32f 100644
+index 5a50009..5123ea1 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-@@ -43,8 +43,8 @@ sdks=()
+@@ -41,10 +41,14 @@ mkdir -p /usr/share/dotnet
+ 
+ sdks=()
  for version in ${dotnet_versions[@]}; do
++    # LXD: Skip .NET versions released before 2025 (only 10.0+ is released in 2025)
++    if [[ "${version%%.*}" -lt 10 ]]; then
++        continue
++    fi
      release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
      releases=$(cat "$(download_with_retry "$release_url")")
 -    sdks=("${sdks[@]}" $(echo "${releases}" | jq -r '.releases[].sdk.version | select(contains("preview") or contains("rc") | not)'))
@@ -76,7 +97,7 @@ index 5a500091..0c91d32f 100644
  
  sorted_sdks=$(echo ${sdks[@]} | tr ' ' '\n' | sort -r | uniq -w 5)
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index c8f2b682..1da414ab 100644
+index c8f2b68..1da414a 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
 @@ -9,6 +9,8 @@
@@ -96,7 +117,7 @@ index c8f2b682..1da414ab 100644
 +sudo -E invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1 b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
-index c138501b..c2c1b78a 100644
+index c138501..c2c1b78 100644
 --- a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 +++ b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 @@ -6,6 +6,8 @@ param (
@@ -109,7 +130,7 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/scripts/tests/System.Tests.ps1 b/images/ubuntu/scripts/tests/System.Tests.ps1
-index b25ed75f..c83c9044 100644
+index b25ed75..c83c904 100644
 --- a/images/ubuntu/scripts/tests/System.Tests.ps1
 +++ b/images/ubuntu/scripts/tests/System.Tests.ps1
 @@ -6,7 +6,8 @@ Describe "Disk free space" -Skip:(-not [String]::IsNullOrEmpty($env:AGENT_NAME)
@@ -123,7 +144,7 @@ index b25ed75f..c83c9044 100644
  }
  
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index e306c9e7..e36675a4 100644
+index e306c9e..eb11000 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -205,8 +226,8 @@ index e306c9e7..e36675a4 100644
    }
  
    provisioner "file" {
-@@ -173,6 +203,20 @@ build {
-     scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
+@@ -167,12 +197,32 @@ build {
+     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
 +  provisioner "shell" {
@@ -225,8 +246,20 @@ index e306c9e7..e36675a4 100644
 +
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
+   }
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = ["chmod 777 ${var.installer_script_folder}/toolset.json"]
++  }
++
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -181,10 +225,17 @@ build {
+@@ -181,7 +231,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -235,17 +268,7 @@ index e306c9e7..e36675a4 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-+  provisioner "shell" {
-+    environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = ["chmod 777 ${var.installer_script_folder}/toolset.json"]
-+  }
-+
-+
-   provisioner "shell" {
-     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
-     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -210,8 +261,15 @@ build {
+@@ -210,8 +260,15 @@ build {
    }
  
    provisioner "shell" {
@@ -263,7 +286,7 @@ index e306c9e7..e36675a4 100644
    }
  
    provisioner "file" {
-@@ -250,7 +308,6 @@ build {
+@@ -250,7 +307,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -273,7 +296,7 @@ index e306c9e7..e36675a4 100644
 -
  }
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 781fcccf..c6cba67a 100644
+index 781fccc..320614d 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 @@ -1,7 +1,24 @@
@@ -335,16 +358,16 @@ index 781fcccf..c6cba67a 100644
 -    ]
 +    destination = "/imagegeneration/post-gen"
 +    source      = "${path.root}/../assets/post-gen/"
-+  }
-+
-+  provisioner "file" {
-+    destination = "/imagegeneration/tests"
-+    source      = "${path.root}/../scripts/tests/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/tests"
++    source      = "${path.root}/../scripts/tests/"
++  }
++
++  provisioner "file" {
 +    destination = "/imagegeneration/docs-gen"
 +    source      = "${path.root}/../scripts/docs-gen/"
 +  }
@@ -406,7 +429,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -199,16 +257,23 @@ provisioner "shell" {
+@@ -199,8 +257,15 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -422,18 +445,8 @@ index 781fcccf..c6cba67a 100644
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
 +    ]
    }
--
-+  
+ 
    provisioner "file" {
-     destination = "${path.root}/../Ubuntu2404-Readme.md"
-     direction   = "download"
-     source      = "${var.image_folder}/software-report.md"
-   }
--
-+  
-   provisioner "file" {
-     destination = "${path.root}/../software-report.json"
-     direction   = "download"
 @@ -229,7 +294,7 @@ provisioner "shell" {
  
    provisioner "shell" {
@@ -444,7 +457,7 @@ index 781fcccf..c6cba67a 100644
  
  }
 diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-index 469493d3..8b137891 100644
+index 469493d..8b13789 100644
 --- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
 @@ -1,15 +1 @@
@@ -464,7 +477,7 @@ index 469493d3..8b137891 100644
 -  os_disk_size_gb = coalesce(var.os_disk_size_gb, local.image_properties_map[var.image_os].os_disk_size_gb)
 -}
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index babc3cb5..a0fc7d33 100644
+index babc3cb..a0fc7d3 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
 @@ -1,49 +1,8 @@
@@ -523,7 +536,7 @@ index babc3cb5..a0fc7d33 100644
    }
  }
 diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-index ef48d309..321e79fa 100644
+index ef48d30..321e79f 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 @@ -1,136 +1,3 @@
