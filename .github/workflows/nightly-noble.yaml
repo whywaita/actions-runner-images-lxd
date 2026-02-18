@@ -81,7 +81,7 @@
             },
             {
                "name": "Remove swap",
-               "run": "sudo swapoff /mnt/swapfile\nsudo rm -rf /mnt/swapfile\n",
+               "run": "sudo swapoff /mnt/swapfile || true\nsudo rm -rf /mnt/swapfile\n",
                "shell": "bash"
             },
             {
