@@ -101,7 +101,7 @@ function(os_version) {
       name: 'Remove swap',
       shell: 'bash',
       run: |||
-        sudo swapoff /mnt/swapfile
+        sudo swapoff /mnt/swapfile || true
         sudo rm -rf /mnt/swapfile
       |||,
     },
