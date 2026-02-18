@@ -1,7 +1,7 @@
 ---
 name: resolve-lxd-patch
 description: Resolve conflicts when lxd.patch cannot be applied to the latest upstream actions/runner-images. Regenerates a clean patch while preserving all LXD-specific modifications.
-allowed-tools: Bash(git:*), Bash(patch:*), Bash(mktemp:*), Bash(cp:*), Bash(rm -rf:*), Read, Edit, Glob, Grep
+allowed-tools: Bash(git:*), Bash(git worktree:*), Bash(patch:*), Bash(mktemp:*), Bash(cp:*), Bash(rm -rf:*), Read, Edit, Glob, Grep
 ---
 
 # Resolve lxd.patch Conflicts
@@ -11,21 +11,63 @@ allowed-tools: Bash(git:*), Bash(patch:*), Bash(mktemp:*), Bash(cp:*), Bash(rm -
 Check the current repository state before starting:
 
 ```bash
+REPO_ROOT=$(git rev-parse --show-toplevel)
 git status
 ```
 
 - Ensure no uncommitted changes exist that could interfere.
 - Confirm `lxd.patch` exists at the repository root.
 
-## Step 2: Set Up Working Environment
+## Step 2: Clean Up Merged Worktrees
 
-Create a temporary directory and clone the upstream repository:
+Clean up any previously created worktrees whose branches have already been merged to master:
 
 ```bash
-REPO_ROOT=$(pwd)
+# List resolve-lxd-patch worktrees
+git worktree list | grep 'resolve-lxd-patch-'
+
+# Find branches that are merged to master
+git branch --merged master | grep 'fix/resolve-lxd-patch-'
+
+# For each merged branch, remove the worktree and branch
+# git worktree remove .worktrees/<name>
+# git branch -d fix/<name>
+
+# Prune stale worktree references
+git worktree prune
+```
+
+For each worktree matching `resolve-lxd-patch-*`:
+1. Check if the corresponding branch `fix/resolve-lxd-patch-*` is merged to master.
+2. If merged, run `git worktree remove` and `git branch -d` to clean up.
+3. If not merged, leave it as-is (it may contain in-progress work).
+
+## Step 3: Create Worktree and Set Up Working Environment
+
+Create a date-stamped worktree for the patch update, then set up a temporary upstream clone:
+
+```bash
+DATE=$(date +%Y%m%d)
+BRANCH_NAME="fix/resolve-lxd-patch-${DATE}"
+WORKTREE_NAME="resolve-lxd-patch-${DATE}"
+WORKTREE_DIR=$REPO_ROOT/.worktrees/$WORKTREE_NAME
+```
+
+If the worktree already exists (same-day re-run), reuse it. Otherwise create it:
+
+```bash
+if [ ! -d "$WORKTREE_DIR" ]; then
+  git worktree add -b "$BRANCH_NAME" "$WORKTREE_DIR" origin/master
+fi
+```
+
+Then clone upstream into a temporary directory:
+
+```bash
 TEMP_DIR=$(mktemp -d)
 echo "Repository root: $REPO_ROOT"
-echo "Working directory: $TEMP_DIR"
+echo "Worktree directory: $WORKTREE_DIR"
+echo "Temp directory: $TEMP_DIR"
 
 cd $TEMP_DIR
 git clone https://github.com/actions/runner-images.git
@@ -33,20 +75,20 @@ cd runner-images
 git checkout main
 ```
 
-## Step 3: Attempt Patch Application
+## Step 4: Attempt Patch Application
 
-Copy and apply the current patch:
+Copy and apply the current patch from the worktree:
 
 ```bash
-cp $REPO_ROOT/lxd.patch .
+cp $WORKTREE_DIR/lxd.patch .
 patch -p1 < lxd.patch
 ```
 
 **If patch applies cleanly (exit code 0):** Skip to Step 7 (no conflicts to resolve).
 
-**If patch fails:** Proceed to Step 4.
+**If patch fails:** Proceed to Step 5.
 
-## Step 4: Analyze Conflicts
+## Step 5: Analyze Conflicts
 
 Identify and read all `.rej` files to understand what failed:
 
@@ -59,7 +101,7 @@ For each `.rej` file:
 2. Read the corresponding upstream file to understand the new structure.
 3. Determine why the hunk failed (context mismatch, file restructure, removed code, etc.).
 
-## Step 5: Resolve Conflicts
+## Step 6: Resolve Conflicts
 
 For each conflicting file, manually apply the intended LXD changes to the upstream file.
 
@@ -87,7 +129,7 @@ Use `AskUserQuestion` in these situations:
 - **Removed files**: Upstream removed files that our patch modifies.
 - **Dependency changes**: Upstream changed dependencies that may affect LXD modifications.
 
-## Step 6: Generate and Validate New Patch
+## Step 7: Generate and Validate New Patch
 
 Generate the new patch from the resolved changes:
 
@@ -118,24 +160,26 @@ Validation must pass all of:
 - No `.rej` files created (`find . -name "*.rej" -type f` returns nothing)
 - All expected files are modified
 
-If validation fails, return to Step 5 and fix remaining issues.
+If validation fails, return to Step 6 and fix remaining issues.
 
-## Step 7: Update Repository
+## Step 8: Update Worktree and Confirm
 
-Copy the validated patch back and verify:
+Copy the validated patch to the worktree and verify:
 
 ```bash
-cp $TEMP_DIR/lxd-new.patch $REPO_ROOT/lxd.patch
-cd $REPO_ROOT
+cp $TEMP_DIR/lxd-new.patch $WORKTREE_DIR/lxd.patch
+cd $WORKTREE_DIR
 git status
 git diff lxd.patch
 ```
 
 Confirm the diff looks correct and all LXD-specific modifications are present.
 
-## Step 8: Cleanup and Report
+The updated patch is now in the worktree at `$WORKTREE_DIR`. From here, the user can commit and create a PR using the worktree branch.
 
-Remove the temporary directory:
+## Step 9: Cleanup and Report
+
+Remove the temporary directory (keep the worktree):
 
 ```bash
 rm -rf $TEMP_DIR
@@ -146,6 +190,9 @@ Produce a summary report in this format:
 ```
 ## Upstream Changes Summary
 
+**Worktree**: $WORKTREE_DIR
+**Branch**: $BRANCH_NAME
+
 ### <filename>
 - **Upstream change**: <what upstream modified>
 - **Old structure**: <previous code structure>
@@ -154,3 +201,5 @@ Produce a summary report in this format:
 
 (Repeat for each conflicting file)
 ```
+
+The worktree is ready for commit and PR creation. The user can `cd $WORKTREE_DIR` to review, commit, and push.
