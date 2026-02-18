@@ -1,0 +1,7 @@
+# Override global .claude ignore for project-level skills
+!.claude/
+.claude/*
+!.claude/skills/
+
+# Worktrees
+.worktrees/
