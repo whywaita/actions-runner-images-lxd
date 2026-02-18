@@ -205,7 +205,22 @@ index e306c9e7..e36675a4 100644
    }
  
    provisioner "file" {
-@@ -173,6 +203,20 @@ build {
+@@ -163,6 +193,14 @@ build {
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir -p /etc/docker",
++      "echo '{\"storage-driver\": \"fuse-overlayfs\"}' > /etc/docker/daemon.json"
++    ]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
+   }
+@@ -173,6 +211,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
  
@@ -226,7 +241,7 @@ index e306c9e7..e36675a4 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -181,10 +225,17 @@ build {
+@@ -181,10 +233,17 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -245,7 +260,7 @@ index e306c9e7..e36675a4 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -210,8 +261,15 @@ build {
+@@ -210,8 +269,15 @@ build {
    }
  
    provisioner "shell" {
@@ -263,7 +278,7 @@ index e306c9e7..e36675a4 100644
    }
  
    provisioner "file" {
-@@ -250,7 +308,6 @@ build {
+@@ -250,7 +316,6 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -376,7 +391,19 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -156,6 +200,20 @@ provisioner "shell" {
+@@ -152,10 +196,32 @@ provisioner "shell" {
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir -p /etc/docker",
++      "echo '{\"storage-driver\": \"fuse-overlayfs\"}' > /etc/docker/daemon.json"
++    ]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
    }
  
@@ -397,7 +424,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -170,7 +228,7 @@ provisioner "shell" {
+@@ -170,7 +236,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -406,7 +433,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -199,16 +257,23 @@ provisioner "shell" {
+@@ -199,16 +265,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -434,7 +461,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -229,7 +294,7 @@ provisioner "shell" {
+@@ -229,7 +302,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
