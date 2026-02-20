@@ -51,13 +51,17 @@ diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubu
 index ac9dcdff..fc23d9fc 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
-@@ -30,4 +30,8 @@ apt-get install ${install_packages[@]}
+@@ -30,4 +30,12 @@ apt-get install ${install_packages[@]}
  mkdir -p /etc/containers
  printf "[registries.search]\nregistries = ['docker.io', 'quay.io']\n" | tee /etc/containers/registries.conf
  
-+if [ -f /etc/containers/storage.conf ]; then
-+    sed -i 's|#mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|g' /etc/containers/storage.conf
-+fi
++cat > /etc/containers/storage.conf << 'EOF'
++[storage]
++driver = "overlay"
++
++[storage.options.overlay]
++mount_program = "/usr/bin/fuse-overlayfs"
++EOF
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
