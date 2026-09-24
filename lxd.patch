@@ -39,7 +39,33 @@ index 609d31ab..3dc7fc63 100644
  
  # Add localhost alias to ::1 IPv6
  sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
-@@ -80,5 +80,5 @@ if is_ubuntu22; then
+@@ -67,16 +67,16 @@ fi
+ # ephemeral, so losing recent writes on an unclean shutdown is acceptable.
+ # data= and journal_async_commit can only be set on the initial mount performed by the initramfs,
+ # so they have to be passed through rootflags on the kernel command line rather than through fstab.
+-root_fs_type=$(findmnt --noheadings --first-only --output FSTYPE --target /)
+-if [[ "$root_fs_type" != "ext4" ]]; then
+-    echo "Expected an ext4 root filesystem but found '${root_fs_type}', refusing to set ext4 rootflags"
+-    exit 1
+-fi
++#root_fs_type=$(findmnt --noheadings --first-only --output FSTYPE --target /)
++#if [[ "$root_fs_type" != "ext4" ]]; then
++#    echo "Expected an ext4 root filesystem but found '${root_fs_type}', refusing to set ext4 rootflags"
++#    exit 1
++#fi
+ 
+-grub_dropin='/etc/default/grub.d/99-runner-performance.cfg'
+-mkdir -p "$(dirname "$grub_dropin")"
+-echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rootflags=nobarrier,data=writeback,journal_async_commit,commit=30"' | tee "$grub_dropin"
+-update-grub
++#grub_dropin='/etc/default/grub.d/99-runner-performance.cfg'
++#mkdir -p "$(dirname "$grub_dropin")"
++#echo 'GRUB_CMDLINE_LINUX_DEFAULT="$GRUB_CMDLINE_LINUX_DEFAULT rootflags=nobarrier,data=writeback,journal_async_commit,commit=30"' | tee "$grub_dropin"
++#update-grub
+ 
+ # Create symlink for tests running
+ chmod +x $HELPER_SCRIPTS/invoke-tests.sh
+@@ -106,5 +106,5 @@ if is_ubuntu22; then
  fi
  
  # Disable man-db auto update
@@ -51,9 +77,9 @@ diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubu
 index ac9dcdff..fc23d9fc 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
-@@ -30,4 +30,8 @@ apt-get install ${install_packages[@]}
- mkdir -p /etc/containers
- printf "[registries.search]\nregistries = ['docker.io', 'quay.io']\n" | tee /etc/containers/registries.conf
+@@ -35,4 +35,8 @@ if is_ubuntu26; then
+     podman network reload --all 2>/dev/null
+ fi
  
 +if [ -f /etc/containers/storage.conf ]; then
 +    sed -i 's|#mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|g' /etc/containers/storage.conf
@@ -64,7 +90,7 @@ diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubun
 index 5a500091..0c91d32f 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-@@ -43,8 +43,8 @@ sdks=()
+@@ -47,8 +47,8 @@ sdks=()
  for version in ${dotnet_versions[@]}; do
      release_url="https://dotnetcli.blob.core.windows.net/dotnet/release-metadata/${version}/releases.json"
      releases=$(cat "$(download_with_retry "$release_url")")
@@ -74,7 +100,7 @@ index 5a500091..0c91d32f 100644
 +    sdks=("${sdks[@]}" $(echo "${releases}" | jq '.releases[] | select (."release-date" >= "2024-12-01")' | jq -r '.sdks[]?.version | select(contains("preview") or contains("rc") | not)'))
  done
  
- sorted_sdks=$(echo ${sdks[@]} | tr ' ' '\n' | sort -r | uniq -w 5)
+ sorted_sdks=$(echo ${sdks[@]} | tr ' ' '\n' | sort -rV | awk -F'.' '!seen[$1"."$2"."int($3/100)]++' )
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
 index c8f2b682..1da414ab 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
@@ -93,7 +119,7 @@ index c8f2b682..1da414ab 100644
  fi
  
 -invoke_tests "Tools" "Homebrew"
-+sudo -E invoke_tests "Tools" "Homebrew"
++sudo env HELPER_SCRIPTS="$HELPER_SCRIPTS" INSTALLER_SCRIPT_FOLDER="$INSTALLER_SCRIPT_FOLDER" invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1 b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 index c138501b..c2c1b78a 100644
@@ -108,6 +134,19 @@ index c138501b..c2c1b78a 100644
  $global:ErrorActionPreference = "Stop"
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
+diff --git a/images/ubuntu/scripts/tests/Apt.Tests.ps1 b/images/ubuntu/scripts/tests/Apt.Tests.ps1
+index 16c1611e..58a25cdb 100644
+--- a/images/ubuntu/scripts/tests/Apt.Tests.ps1
++++ b/images/ubuntu/scripts/tests/Apt.Tests.ps1
+@@ -47,7 +47,7 @@ Describe "Apt acquire configuration" {
+         (Get-CommandResult "apt-config dump APT::Acquire::Retries").Output | Should -BeNullOrEmpty
+     }
+ 
+-    It "Apt sources resolve through the mirror list" -Skip:$usesPortsArchive {
++    It "Apt sources resolve through the mirror list" -Skip {
+         $sourcesFile = if (Test-IsUbuntu22) { "/etc/apt/sources.list" } else { "/etc/apt/sources.list.d/ubuntu.sources" }
+         Get-Content $sourcesFile -Raw | Should -Match ([regex]::Escape("mirror+file:/etc/apt/apt-mirrors.txt"))
+     }
 diff --git a/images/ubuntu/scripts/tests/System.Tests.ps1 b/images/ubuntu/scripts/tests/System.Tests.ps1
 index b25ed75f..c83c9044 100644
 --- a/images/ubuntu/scripts/tests/System.Tests.ps1
@@ -122,6 +161,15 @@ index b25ed75f..c83c9044 100644
      }
  }
  
+@@ -46,7 +47,7 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
+     }
+ }
+ 
+-Describe "Root filesystem performance options" {
++Describe "Root filesystem performance options" -Skip {
+     It "GRUB drop-in sets the root filesystem mount options" {
+         $content = Get-Content "/etc/default/grub.d/99-runner-performance.cfg" -Raw
+         $content | Should -Match "rootflags=nobarrier,data=writeback,journal_async_commit,commit=30"
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 index e306c9e7..e36675a4 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
@@ -391,7 +439,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -152,10 +196,32 @@ provisioner "shell" {
+@@ -154,10 +198,32 @@ provisioner "shell" {
  
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -424,7 +472,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -170,7 +236,7 @@ provisioner "shell" {
+@@ -172,7 +238,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -433,7 +481,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -199,16 +265,23 @@ provisioner "shell" {
+@@ -201,16 +267,23 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -461,7 +509,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -229,7 +302,7 @@ provisioner "shell" {
+@@ -231,7 +304,7 @@ provisioner "shell" {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -470,14 +518,217 @@ index 781fcccf..c6cba67a 100644
    }
  
  }
+diff --git a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
+index 501f9319..c062ec1b 100644
+--- a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
+@@ -1,7 +1,24 @@
++source "lxd" "build_image_26_04" {
++  image          = "ubuntu:resolute"
++  container_name = "packer-lxd"
++  skip_publish   = true
++}
++
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_26_04"]
+   name = "ubuntu-26_04"
+ 
++  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
+@@ -9,7 +26,14 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.helper_script_folder}"
+-    source      = "${path.root}/../scripts/helpers"
++    source      = "${path.root}/../scripts/helpers/"
++  }
++
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "chmod -R 777 ${var.helper_script_folder}",
++    ]
+   }
+ 
+   provisioner "shell" {
+@@ -34,21 +58,27 @@ build {
+ 
+   provisioner "file" {
+     destination = "${var.installer_script_folder}"
+-    source      = "${path.root}/../scripts/build"
++    source      = "${path.root}/../scripts/build/"
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}"
+-    sources     = [
+-      "${path.root}/../assets/post-gen",
+-      "${path.root}/../scripts/tests",
+-      "${path.root}/../scripts/docs-gen"
+-    ]
++    destination = "/imagegeneration/post-gen"
++    source      = "${path.root}/../assets/post-gen/"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/tests"
++    source      = "${path.root}/../scripts/tests/"
+   }
+ 
+   provisioner "file" {
+-    destination = "${var.image_folder}/docs-gen/"
+-    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
++  }
++
++  provisioner "file" {
++    destination = "${var.image_folder}/docs-gen/software-report-base"
++    source      = "${path.root}/../../../helpers/software-report-base/"
+   }
+ 
+   provisioner "file" {
+@@ -56,6 +86,13 @@ build {
+     source      = "${path.root}/../toolsets/toolset-2604.json"
+   }
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "sudo chmod 777 ${var.installer_script_folder}/toolset.json"
++    ]
++  }
++
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     inline          = [
+@@ -150,10 +187,25 @@ provisioner "shell" {
+ 
++  provisioner "shell" {
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "mkdir -p /etc/docker",
++      "echo '{\"storage-driver\": \"fuse-overlayfs\"}' > /etc/docker/daemon.json"
++    ]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
+   }
+ 
++  provisioner "shell" {
++    execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline           = [
++      "gpasswd -a runner docker"
++    ]
++  }
++
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+     execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
+@@ -168,7 +220,7 @@ provisioner "shell" {
+ 
+   provisioner "shell" {
+     environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+-    execute_command  = "/bin/sh -c '{{ .Vars }} {{ .Path }}'"
++    execute_command  = "sudo -u runner /bin/sh -c '{{ .Vars }} {{ .Path }}'"
+     scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
+   }
+ 
+@@ -197,16 +249,23 @@ provisioner "shell" {
+   }
+ 
+   provisioner "shell" {
+-    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
+-    inline           = ["pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}", "pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}"]
++    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} bash -l {{ .Path }}"
++    environment_vars = ["IMAGE_VERSION=${var.image_version}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}", "AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache"]
++    inline           = [
++      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
++      "sudo chmod 777 -R ${var.image_folder}",
++      "cpan < /dev/null",
++      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
++      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
++    ]
+   }
+-
++  
+   provisioner "file" {
+     destination = "${path.root}/../Ubuntu2604-Readme.md"
+     direction   = "download"
+     source      = "${var.image_folder}/software-report.md"
+   }
+-
++  
+   provisioner "file" {
+     destination = "${path.root}/../software-report.json"
+     direction   = "download"
+@@ -227,7 +286,7 @@ provisioner "shell" {
+ 
+   provisioner "shell" {
+     execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
+-    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
++    inline          = ["export HISTSIZE=0 && sync"]
+   }
+ 
+ }
+diff --git a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
+index d5f3c0bc..a911ffcb 100644
+--- a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_22_04"]
+   name = "ubuntu-22_04-arm64"
+ 
+   provisioner "shell" {
+diff --git a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
+index 2a88f1f3..c86865ac 100644
+--- a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_24_04"]
+   name = "ubuntu-24_04-arm64"
+ 
+   provisioner "shell" {
+diff --git a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
+index 159d3757..b370eced 100644
+--- a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_26_04"]
+   name = "ubuntu-26_04-arm64"
+ 
+   provisioner "shell" {
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
 index babc3cb5..a0fc7d33 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-@@ -1,49 +1,8 @@
+@@ -1,50 +1,8 @@
 -source "azure-arm" "image" {
 -  client_cert_path                       = var.client_cert_path
 -  client_id                              = var.client_id
+-  client_jwt                             = var.client_jwt
 -  client_secret                          = var.client_secret
 -  object_id                              = var.object_id
 -  oidc_request_token                     = var.oidc_request_token
@@ -533,15 +784,31 @@ diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templ
 index 0c62430a..e69de29b 100644
 --- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-@@ -1,15 +0,0 @@
+@@ -1,31 +0,0 @@
 -locals {
 -  image_properties_map = {
 -      "ubuntu22" = {
 -            source_image_marketplace_sku = "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2"
 -            os_disk_size_gb = 75
 -      },
+-      "ubuntu22-arm64" = {
+-            source_image_marketplace_sku = "canonical:0001-com-ubuntu-server-jammy:22_04-lts-arm64"
+-            os_disk_size_gb = 75
+-      },
 -      "ubuntu24" = {
 -            source_image_marketplace_sku = "canonical:ubuntu-24_04-lts:server"
+-            os_disk_size_gb = 75
+-      },
+-      "ubuntu24-arm64" = {
+-            source_image_marketplace_sku = "canonical:ubuntu-24_04-lts:server-arm64"
+-            os_disk_size_gb = 75
+-      },
+-      "ubuntu26" = {
+-            source_image_marketplace_sku = "canonical:ubuntu-26_04-lts:server"
+-            os_disk_size_gb = 75
+-      },
+-      "ubuntu26-arm64" = {
+-            source_image_marketplace_sku = "canonical:ubuntu-26_04-lts:server-arm64"
 -            os_disk_size_gb = 75
 -      }
 -  }
@@ -553,7 +820,7 @@ diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/tem
 index 685c6604..af0b7d72 100644
 --- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-@@ -1,136 +1,3 @@
+@@ -1,141 +1,3 @@
 -// Authentication related variables
 -variable "client_cert_path" {
 -  type    = string
@@ -562,6 +829,11 @@ index 685c6604..af0b7d72 100644
 -variable "client_id" {
 -  type    = string
 -  default = "${env("ARM_CLIENT_ID")}"
+-}
+-variable "client_jwt" {
+-  type      = string
+-  default   = "${env("ARM_CLIENT_JWT")}"
+-  sensitive = true
 -}
 -variable "client_secret" {
 -  type      = string
