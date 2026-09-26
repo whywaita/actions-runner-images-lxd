@@ -7,6 +7,20 @@ function(os_version) {
     { uses: 'Kesin11/actions-timeline@v2' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
+      // The GitHub-hosted ubuntu-22.04 runner ships LXD 5.0 (from 5.0/stable), and
+      // setup-lxd's `snap install` is a no-op on it. LXD 5.0 generates an AppArmor
+      // profile that denies `mount options=(rw, move)` on /run/credentials/<unit>,
+      // which is how systemd >= 257 (Ubuntu 26.04) mounts unit credentials. That
+      // makes systemd-networkd and systemd-resolved fail inside the container, so
+      // it never gets a DHCP lease nor DNS and the first apt-get of the build dies
+      // with "Temporary failure resolving 'archive.ubuntu.com'".
+      // Verified on the runner: with this rule, networkd/resolved are active and
+      // apt-get update succeeds. Harmless where LXD already allows it (6.x).
+      name: 'Allow systemd credentials mount in the LXD default profile',
+      shell: 'bash',
+      run: 'lxc profile set default raw.apparmor "mount options=(rw, move) -> /run/credentials/**,"',
+    },
+    {
       name: 'Setup distrobuilder',
       shell: 'bash',
       run: 'sudo snap install distrobuilder --classic',

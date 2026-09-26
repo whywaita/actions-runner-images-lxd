@@ -19,6 +19,11 @@
                "uses": "whywaita/setup-lxd@v1"
             },
             {
+               "name": "Allow systemd credentials mount in the LXD default profile",
+               "run": "lxc profile set default raw.apparmor \"mount options=(rw, move) -> /run/credentials/**,\"",
+               "shell": "bash"
+            },
+            {
                "name": "Setup distrobuilder",
                "run": "sudo snap install distrobuilder --classic",
                "shell": "bash"
