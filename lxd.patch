@@ -77,12 +77,28 @@ diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubu
 index ac9dcdff..fc23d9fc 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
-@@ -35,4 +35,8 @@ if is_ubuntu26; then
+@@ -35,4 +35,24 @@ if is_ubuntu26; then
      podman network reload --all 2>/dev/null
  fi
  
-+if [ -f /etc/containers/storage.conf ]; then
-+    sed -i 's|#mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|g' /etc/containers/storage.conf
++# Native overlayfs is unavailable inside an unprivileged LXD container; jammy
++# ships no storage.conf at all, so podman 3.4.4 tries the native overlay driver,
++# fails and errors out instead of falling back to fuse-overlayfs. Only jammy
++# needs this: on noble/resolute podman has already initialised its storage
++# database by the time this script runs, and changing the configured driver
++# afterwards fails with `database graph driver "" does not match our graph
++# driver "overlay": database configuration mismatch`, breaking tests that pass.
++if is_ubuntu22 && [ -x /usr/bin/fuse-overlayfs ]; then
++    mkdir -p /etc/containers
++    cat > /etc/containers/storage.conf << 'EOF'
++[storage]
++driver = "overlay"
++graphroot = "/var/lib/containers/storage"
++runroot = "/run/containers/storage"
++
++[storage.options.overlay]
++mount_program = "/usr/bin/fuse-overlayfs"
++EOF
 +fi
 +
  invoke_tests "Tools" "Containers"
