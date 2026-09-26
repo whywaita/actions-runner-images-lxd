@@ -12,48 +12,58 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
       - uses: whywaita/setup-lxd@v1
+      - name: Host versions
+        shell: bash
+        run: |
+          uname -a
+          lxc version
+          snap list lxd
+          sudo aa-status 2>&1 | head -5 || true
+          echo "=== apparmor kernel features"
+          sudo ls /sys/kernel/security/apparmor/features/ 2>/dev/null || true
       - name: Clear duplicate entry in nftables (same as build workflows)
         shell: bash
         run: |
           sudo nft flush ruleset
           sudo systemctl restart snap.lxd.daemon
-      - name: Launch noble and resolute containers and poll them
+      - name: Reproduce - resolute with the stock default profile
         shell: bash
         run: |
-          lxc launch ubuntu:noble probe-noble
           lxc launch ubuntu:resolute probe-resolute
-          for i in 1 2 3 4 5 6; do
-            echo "===== round $i $(date -u +%T)"
-            for c in probe-noble probe-resolute; do
-              echo "--- $c"
-              lxc exec "$c" -- sh -c '
-                echo -n "resolv.conf: "; grep -E "nameserver" /etc/resolv.conf | tr "\n" " "; echo
-                echo -n "addr: "; ip -4 addr show eth0 2>/dev/null | grep -w inet | tr -s " " | cut -d" " -f2-
-                echo -n "route: "; ip route 2>/dev/null | head -2 | tr "\n" " "; echo
-                echo -n "resolved: "; resolvectl status 2>&1 | grep -E "Current DNS Server|DNS Servers|DNS Domain|resolv.conf mode" | tr -s " " | tr "\n" "|"; echo
-                echo -n "units: "; systemctl is-active systemd-resolved systemd-networkd 2>&1 | tr "\n" " "; echo
-                echo -n "getent: "; getent hosts archive.ubuntu.com >/dev/null 2>&1 && echo OK || echo FAIL
-              ' || echo "exec failed"
-            done
-            sleep 10
-          done
-      - name: apt-get update inside both containers
+          sleep 20
+          lxc exec probe-resolute -- sh -c 'systemctl is-active systemd-networkd systemd-resolved; echo -n "getent: "; getent hosts archive.ubuntu.com >/dev/null 2>&1 && echo OK || echo FAIL'
+          echo "=== systemd-networkd journal"
+          lxc exec probe-resolute -- journalctl -u systemd-networkd -b --no-pager 2>&1 | tail -25
+          echo "=== profile mount rules mentioning move (tail)"
+          sudo grep -n "move" /var/snap/lxd/common/lxd/security/apparmor/profiles/lxd-probe-resolute 2>/dev/null | tail -20
+          echo "=== apparmor denials for credentials"
+          sudo dmesg | grep -i "apparmor" | grep -i "credentials" | tail -5
+      - name: Candidate fix - allow systemd credentials mount in the default profile
         if: always()
         shell: bash
         run: |
-          for c in probe-noble probe-resolute; do
-            echo "===== $c apt-get update"
-            lxc exec "$c" -- apt-get update 2>&1 | tail -4 || true
-          done
+          lxc profile set default raw.apparmor "mount options=(rw, move) -> /run/credentials/**," || true
+          lxc delete -f probe-resolute || true
+          lxc launch ubuntu:resolute probe-resolute-fixed
+          sleep 25
+          lxc exec probe-resolute-fixed -- sh -c 'systemctl is-active systemd-networkd systemd-resolved; echo -n "getent: "; getent hosts archive.ubuntu.com >/dev/null 2>&1 && echo OK || echo FAIL; echo -n "addr: "; ip -4 addr show eth0 | grep -w inet | tr -s " " | cut -d" " -f2-'
+          echo "=== apt-get update with the fix"
+          lxc exec probe-resolute-fixed -- apt-get update 2>&1 | tail -3
+      - name: Fallback probe - unconfined apparmor profile
+        if: always()
+        shell: bash
+        run: |
+          lxc profile unset default raw.apparmor || true
+          lxc profile set default raw.lxc "lxc.apparmor.profile=unconfined" || true
+          lxc delete -f probe-resolute-fixed || true
+          lxc launch ubuntu:resolute probe-resolute-unconfined || true
+          sleep 25
+          lxc exec probe-resolute-unconfined -- sh -c 'systemctl is-active systemd-networkd systemd-resolved; echo -n "getent: "; getent hosts archive.ubuntu.com >/dev/null 2>&1 && echo OK || echo FAIL' || true
       - name: Host side facts
         if: always()
         shell: bash
         run: |
           echo "===== lxdbr0"
           lxc network show lxdbr0 || true
-          echo "===== host resolv.conf"
-          cat /etc/resolv.conf || true
           echo "===== apparmor denials (dmesg)"
-          sudo dmesg | grep -i -E "apparmor|denied" | tail -20 || true
-          echo "===== container logs"
-          for c in probe-noble probe-resolute; do echo "--- $c"; lxc info "$c" --show-log 2>&1 | tail -20; done
+          sudo dmesg | grep -i "apparmor" | tail -10 || true
