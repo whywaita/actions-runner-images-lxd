@@ -103,6 +103,7 @@ You should see your newly created image with the alias `ubuntu-noble-runner`.
 Builds run automatically every day. The latest builds are available from the following workflow:
 
 - Ubuntu 24.04: [nightly-noble.yaml](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-noble.yaml)
+- Ubuntu 26.04: [nightly-resolute.yaml](https://github.com/whywaita/actions-runner-images-lxd/actions/workflows/nightly-resolute.yaml)
 
 Download artifacts from a successful workflow run:
 
