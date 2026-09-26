@@ -3,7 +3,7 @@
       "PACKER_GITHUB_API_TOKEN": "${{ secrets.GITHUB_TOKEN }}"
    },
    "jobs": {
-      "build-noble": {
+      "build-resolute": {
          "runs-on": "ubuntu-22.04",
          "steps": [
             {
@@ -66,7 +66,7 @@
             },
             {
                "name": "packer validate packer.json",
-               "run": "packer validate -syntax-only -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+               "run": "packer validate -syntax-only -only ubuntu-26_04.lxd.build_image_26_04 ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -75,7 +75,7 @@
                   "PACKER_LOG": 1
                },
                "name": "packer build packer.json",
-               "run": "packer build -only ubuntu-24_04.lxd.build_image_24_04 ./images/ubuntu/templates/",
+               "run": "packer build -only ubuntu-26_04.lxd.build_image_26_04 ./images/ubuntu/templates/",
                "shell": "bash",
                "working-directory": "${{ env.dir }}"
             },
@@ -103,7 +103,7 @@
                "name": "Upload artifact",
                "uses": "actions/upload-artifact@v4",
                "with": {
-                  "name": "virtual-environments-lxd-24_04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
+                  "name": "virtual-environments-lxd-26_04-${{ env.virtual-environments-hash }}-${{ env.build-date }}.zip",
                   "path": "/mnt/output/*",
                   "retention-days": 5
                }
@@ -112,8 +112,8 @@
                "name": "Upload SoftwareReport.md",
                "uses": "actions/upload-artifact@v4",
                "with": {
-                  "name": "Ubuntu2404-Readme.md",
-                  "path": "./runner-images/images/ubuntu/Ubuntu2404-Readme.md",
+                  "name": "Ubuntu2604-Readme.md",
+                  "path": "./runner-images/images/ubuntu/Ubuntu2604-Readme.md",
                   "retention-days": 5
                }
             },
@@ -134,7 +134,7 @@
          ]
       }
    },
-   "name": "Build image - noble",
+   "name": "Build image - resolute",
    "on": {
       "pull_request": { },
       "workflow_dispatch": { }
