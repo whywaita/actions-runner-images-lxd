@@ -1,7 +1,10 @@
 name: debug - resolute container network
 
 # TEMPORARY diagnostic workflow. Not for merge.
+# workflow_dispatch cannot be used for a workflow that only exists on a PR branch,
+# so it is triggered by pull_request on PR #71.
 on:
+  pull_request: {}
   workflow_dispatch: {}
 
 jobs:
