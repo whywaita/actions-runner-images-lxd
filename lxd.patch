@@ -77,12 +77,28 @@ diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubu
 index ac9dcdff..fc23d9fc 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
-@@ -35,4 +35,8 @@ if is_ubuntu26; then
+@@ -35,4 +35,24 @@ if is_ubuntu26; then
      podman network reload --all 2>/dev/null
  fi
  
-+if [ -f /etc/containers/storage.conf ]; then
-+    sed -i 's|#mount_program = "/usr/bin/fuse-overlayfs"|mount_program = "/usr/bin/fuse-overlayfs"|g' /etc/containers/storage.conf
++# Native overlayfs is unavailable inside an unprivileged LXD container; jammy
++# ships no storage.conf at all, so podman 3.4.4 tries the native overlay driver,
++# fails and errors out instead of falling back to fuse-overlayfs. Only jammy
++# needs this: on noble/resolute podman has already initialised its storage
++# database by the time this script runs, and changing the configured driver
++# afterwards fails with `database graph driver "" does not match our graph
++# driver "overlay": database configuration mismatch`, breaking tests that pass.
++if is_ubuntu22 && [ -x /usr/bin/fuse-overlayfs ]; then
++    mkdir -p /etc/containers
++    cat > /etc/containers/storage.conf << 'EOF'
++[storage]
++driver = "overlay"
++graphroot = "/var/lib/containers/storage"
++runroot = "/run/containers/storage"
++
++[storage.options.overlay]
++mount_program = "/usr/bin/fuse-overlayfs"
++EOF
 +fi
 +
  invoke_tests "Tools" "Containers"
@@ -161,6 +177,18 @@ index b25ed75f..c83c9044 100644
      }
  }
  
+@@ -47,7 +48,10 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
+         $content | Should -Match 'ATTR\{queue/read_ahead_kb\}="128"'
+     }
+ 
+-    It "All SCSI and NVMe devices have read_ahead_kb set to 128" {
++    # In an LXD container /sys/block exposes the host's block devices with the
++    # host's values, so this assertion measures the build host rather than the
++    # image (128 on some runners, 65536 on others).
++    It "All SCSI and NVMe devices have read_ahead_kb set to 128" -Skip {
+         $devices = Get-ChildItem "/sys/block/sd*/queue/read_ahead_kb", "/sys/block/nvme*n*/queue/read_ahead_kb" -ErrorAction SilentlyContinue
+         $devices | Should -Not -BeNullOrEmpty -Because "there should be at least one sd* or nvme* block device"
+         foreach ($dev in $devices) {
 @@ -46,7 +47,7 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
      }
  }
