@@ -3,7 +3,6 @@ local packer_def_path(os_version) = std.format('images/ubuntu/templates/build.ub
 function(os_version) {
   steps: [
     { uses: 'actions/checkout@v4' },
-    { uses: 'catchpoint/workflow-telemetry-action@v2' },
     { uses: 'Kesin11/actions-timeline@v2' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
@@ -23,13 +22,23 @@ function(os_version) {
     {
       name: 'Setup distrobuilder',
       shell: 'bash',
-      run: 'sudo snap install distrobuilder --classic',
+      run: |||
+        set -eux
+        # The distrobuilder snap was removed from the Snap Store (CLI answers
+        # `error: snap "distrobuilder" not found`), so build it from the pinned
+        # upstream tag instead.
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq libgpgme-dev libbtrfs-dev
+        go install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0
+        sudo cp "$(go env GOPATH)/bin/distrobuilder" /usr/bin/distrobuilder
+        distrobuilder --version
+      |||,
     },
     {
       name: 'Delete unused file',
       shell: 'bash',
       run: |||
-        sudo rm -rf /opt/
+        sudo find /opt -mindepth 1 -maxdepth 1 ! -name runner-cache -exec rm -rf {} +
         sudo rm -rf /usr/local/*
         sudo rm -rf /usr/local/.ghcup
         sudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk
