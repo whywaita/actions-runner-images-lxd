@@ -10,9 +10,6 @@
                "uses": "actions/checkout@v4"
             },
             {
-               "uses": "catchpoint/workflow-telemetry-action@v2"
-            },
-            {
                "uses": "Kesin11/actions-timeline@v2"
             },
             {

@@ -3,7 +3,6 @@ local packer_def_path(os_version) = std.format('images/ubuntu/templates/build.ub
 function(os_version) {
   steps: [
     { uses: 'actions/checkout@v4' },
-    { uses: 'catchpoint/workflow-telemetry-action@v2' },
     { uses: 'Kesin11/actions-timeline@v2' },
     { uses: 'whywaita/setup-lxd@v1' },
     {
