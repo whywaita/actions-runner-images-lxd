@@ -336,7 +336,7 @@ index e306c9e7..e36675a4 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -210,8 +269,15 @@ build {
+@@ -210,8 +269,16 @@ build {
    }
  
    provisioner "shell" {
@@ -347,6 +347,7 @@ index e306c9e7..e36675a4 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -509,7 +510,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -201,16 +267,23 @@ provisioner "shell" {
+@@ -201,16 +267,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -520,6 +521,7 @@ index 781fcccf..c6cba67a 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -678,7 +680,7 @@ index 501f9319..c062ec1b 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -197,16 +249,23 @@ provisioner "shell" {
+@@ -197,16 +249,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -689,6 +691,7 @@ index 501f9319..c062ec1b 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
