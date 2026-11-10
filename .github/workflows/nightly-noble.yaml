@@ -22,7 +22,7 @@
             },
             {
                "name": "Setup distrobuilder",
-               "run": "sudo snap install distrobuilder --classic",
+               "run": "set -eux\n# The distrobuilder snap was removed from the Snap Store (CLI answers\n# `error: snap \"distrobuilder\" not found`), so build it from the pinned\n# upstream tag instead.\nsudo apt-get update -qq\nsudo apt-get install -y -qq libgpgme-dev libbtrfs-dev\ngo install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0\nsudo cp \"$(go env GOPATH)/bin/distrobuilder\" /usr/local/bin/distrobuilder\ndistrobuilder --version\n",
                "shell": "bash"
             },
             {

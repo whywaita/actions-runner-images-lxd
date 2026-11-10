@@ -22,7 +22,17 @@ function(os_version) {
     {
       name: 'Setup distrobuilder',
       shell: 'bash',
-      run: 'sudo snap install distrobuilder --classic',
+      run: |||
+        set -eux
+        # The distrobuilder snap was removed from the Snap Store (CLI answers
+        # `error: snap "distrobuilder" not found`), so build it from the pinned
+        # upstream tag instead.
+        sudo apt-get update -qq
+        sudo apt-get install -y -qq libgpgme-dev libbtrfs-dev
+        go install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0
+        sudo cp "$(go env GOPATH)/bin/distrobuilder" /usr/local/bin/distrobuilder
+        distrobuilder --version
+      |||,
     },
     {
       name: 'Delete unused file',
