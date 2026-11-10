@@ -215,21 +215,10 @@ index e306c9e7..e36675a4 100644
    name = "ubuntu-22_04"
  
    provisioner "shell" {
-@@ -7,9 +13,27 @@ build {
+@@ -7,9 +13,16 @@ build {
      inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
    }
  
-+  provisioner "shell" {
-+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-+  }
-+
    provisioner "file" {
      destination = "${var.helper_script_folder}"
 -    source      = "${path.root}/../scripts/helpers"
@@ -281,8 +270,19 @@ index e306c9e7..e36675a4 100644
    }
  
    provisioner "file" {
-@@ -163,6 +193,14 @@ build {
+@@ -163,6 +193,25 @@ build {
  
++  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
@@ -336,7 +336,7 @@ index e306c9e7..e36675a4 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-@@ -210,8 +269,15 @@ build {
+@@ -210,8 +269,16 @@ build {
    }
  
    provisioner "shell" {
@@ -347,6 +347,7 @@ index e306c9e7..e36675a4 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -367,7 +368,7 @@ diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/
 index 781fcccf..c6cba67a 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-@@ -1,7 +1,24 @@
+@@ -1,7 +1,13 @@
 +source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
@@ -379,17 +380,6 @@ index 781fcccf..c6cba67a 100644
 +  sources = ["source.lxd.build_image_24_04"]
    name = "ubuntu-24_04"
  
-+  provisioner "shell" {
-+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-+  }
-+
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
@@ -467,8 +457,19 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -154,10 +198,32 @@ provisioner "shell" {
+@@ -154,10 +198,43 @@ provisioner "shell" {
  
++  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
@@ -509,7 +510,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -201,16 +267,23 @@ provisioner "shell" {
+@@ -201,16 +267,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -520,6 +521,7 @@ index 781fcccf..c6cba67a 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
@@ -550,7 +552,7 @@ diff --git a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl b/images/ubuntu/
 index 501f9319..c062ec1b 100644
 --- a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
-@@ -1,7 +1,24 @@
+@@ -1,7 +1,13 @@
 +source "lxd" "build_image_26_04" {
 +  image          = "ubuntu:resolute"
 +  container_name = "packer-lxd"
@@ -562,17 +564,6 @@ index 501f9319..c062ec1b 100644
 +  sources = ["source.lxd.build_image_26_04"]
    name = "ubuntu-26_04"
  
-+  provisioner "shell" {
-+    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
-+    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-+    inline          = [
-+      "apt-get update -y; apt-get install whois",
-+      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
-+      "gpasswd -a runner sudo",
-+      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
-+    ]
-+  }
-+
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
@@ -643,8 +634,19 @@ index 501f9319..c062ec1b 100644
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
      inline          = [
-@@ -150,10 +187,25 @@ provisioner "shell" {
+@@ -150,10 +187,36 @@ provisioner "shell" {
  
++  provisioner "shell" {
++    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
++    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
++    inline          = [
++      "apt-get update -y; apt-get install whois",
++      "useradd -p $(echo runner | mkpasswd -s -m sha-512) -m -s /bin/bash runner",
++      "gpasswd -a runner sudo",
++      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
++    ]
++  }
++
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
 +    inline          = [
@@ -678,7 +680,7 @@ index 501f9319..c062ec1b 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -197,16 +249,23 @@ provisioner "shell" {
+@@ -197,16 +249,24 @@ provisioner "shell" {
    }
  
    provisioner "shell" {
@@ -689,6 +691,7 @@ index 501f9319..c062ec1b 100644
 +    inline           = [
 +      "cp -a /home/runner/.bashrc /home/runner/.bashrc.bak ; rsync -a /root/ /home/runner/ --include='.*' --exclude='*' && chown -R runner:runner /home/runner",
 +      "sudo chmod 777 -R ${var.image_folder}",
++      "sudo chmod 777 -R /opt",
 +      "cpan < /dev/null",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/SoftwareReport/Generate-SoftwareReport.ps1 -OutputDirectory ${var.image_folder}'",
 +      "sudo su runner bash -lc 'IMAGE_VERSION=${var.image_version} INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder} AGENT_TOOLSDIRECTORY=/opt/hostedtoolcache pwsh -File ${var.image_folder}/tests/RunAll-Tests.ps1 -OutputDirectory ${var.image_folder}'"
