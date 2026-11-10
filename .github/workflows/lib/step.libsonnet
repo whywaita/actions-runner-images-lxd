@@ -30,7 +30,7 @@ function(os_version) {
         sudo apt-get update -qq
         sudo apt-get install -y -qq libgpgme-dev libbtrfs-dev
         go install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0
-        sudo cp "$(go env GOPATH)/bin/distrobuilder" /usr/local/bin/distrobuilder
+        sudo cp "$(go env GOPATH)/bin/distrobuilder" /usr/bin/distrobuilder
         distrobuilder --version
       |||,
     },
@@ -38,7 +38,7 @@ function(os_version) {
       name: 'Delete unused file',
       shell: 'bash',
       run: |||
-        sudo rm -rf /opt/
+        sudo find /opt -mindepth 1 -maxdepth 1 ! -name runner-cache -exec rm -rf {} +
         sudo rm -rf /usr/local/*
         sudo rm -rf /usr/local/.ghcup
         sudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk

@@ -22,12 +22,12 @@
             },
             {
                "name": "Setup distrobuilder",
-               "run": "set -eux\n# The distrobuilder snap was removed from the Snap Store (CLI answers\n# `error: snap \"distrobuilder\" not found`), so build it from the pinned\n# upstream tag instead.\nsudo apt-get update -qq\nsudo apt-get install -y -qq libgpgme-dev libbtrfs-dev\ngo install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0\nsudo cp \"$(go env GOPATH)/bin/distrobuilder\" /usr/local/bin/distrobuilder\ndistrobuilder --version\n",
+               "run": "set -eux\n# The distrobuilder snap was removed from the Snap Store (CLI answers\n# `error: snap \"distrobuilder\" not found`), so build it from the pinned\n# upstream tag instead.\nsudo apt-get update -qq\nsudo apt-get install -y -qq libgpgme-dev libbtrfs-dev\ngo install github.com/lxc/distrobuilder/v3/distrobuilder@v3.4.0\nsudo cp \"$(go env GOPATH)/bin/distrobuilder\" /usr/bin/distrobuilder\ndistrobuilder --version\n",
                "shell": "bash"
             },
             {
                "name": "Delete unused file",
-               "run": "sudo rm -rf /opt/\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n\nsudo mkdir -p /opt\nsudo chmod 777 /opt\n",
+               "run": "sudo find /opt -mindepth 1 -maxdepth 1 ! -name runner-cache -exec rm -rf {} +\nsudo rm -rf /usr/local/*\nsudo rm -rf /usr/local/.ghcup\nsudo rm -rf /usr/lib/jvm /usr/lib/google-cloud-sdk\nsudo rm -rf /home/runneradmin /home/linuxbrew\nsudo rm -rf /home/runner/runners/*.tar.gz\n# ignore /var/run, snap lxd packages, apt\nsudo ls /var/**/** | grep \":\" | tr -d \":\" | grep -Ev \"/var/run|/var/snap/lxd|/var/lib/snapd|/var/lib/dpkg\" |  xargs -I%% sudo rm -rf %%\n# ignore /usr/share/dpkg\nls /usr/share/ | grep -vE \"dpkg|debconf|dbus\" | xargs -I%% sudo rm -rf /usr/share/%%\n\nsudo mkdir -p /opt\nsudo chmod 777 /opt\n",
                "shell": "bash"
             },
             {
