@@ -1,5 +1,5 @@
 diff --git a/images/ubuntu/assets/post-gen/environment-variables.sh b/images/ubuntu/assets/post-gen/environment-variables.sh
-index 975c8a4a..016995a1 100644
+index 975c8a4..016995a 100644
 --- a/images/ubuntu/assets/post-gen/environment-variables.sh
 +++ b/images/ubuntu/assets/post-gen/environment-variables.sh
 @@ -2,5 +2,5 @@
@@ -12,7 +12,7 @@ index 975c8a4a..016995a1 100644
 +homeDir=$(cut -d: -f1,6 /etc/passwd | grep "runner:" | cut -d: -f2)
 +sed -i "s|\$HOME|$homeDir|g" /etc/environment
 diff --git a/images/ubuntu/assets/post-gen/systemd-linger.sh b/images/ubuntu/assets/post-gen/systemd-linger.sh
-index 294c8f1b..bfc28952 100644
+index 294c8f1..bfc2895 100644
 --- a/images/ubuntu/assets/post-gen/systemd-linger.sh
 +++ b/images/ubuntu/assets/post-gen/systemd-linger.sh
 @@ -1,5 +1,5 @@
@@ -23,23 +23,10 @@ index 294c8f1b..bfc28952 100644
 +UserId=$(cut -d: -f1,3 /etc/passwd | grep "runner:" | cut -d: -f2)
  loginctl enable-linger $UserId
 diff --git a/images/ubuntu/scripts/build/configure-environment.sh b/images/ubuntu/scripts/build/configure-environment.sh
-index 609d31ab..3dc7fc63 100644
+index a33d388..ce5125d 100644
 --- a/images/ubuntu/scripts/build/configure-environment.sh
 +++ b/images/ubuntu/scripts/build/configure-environment.sh
-@@ -20,9 +20,9 @@ mkdir -p /etc/skel/.config/configstore
- set_etc_environment_variable "XDG_CONFIG_HOME" '$HOME/.config'
- 
- # Change waagent entries to use /mnt for swap file
--sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
--sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
--sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
-+#sed -i 's/ResourceDisk.Format=n/ResourceDisk.Format=y/g' /etc/waagent.conf
-+#sed -i 's/ResourceDisk.EnableSwap=n/ResourceDisk.EnableSwap=y/g' /etc/waagent.conf
-+#sed -i 's/ResourceDisk.SwapSizeMB=0/ResourceDisk.SwapSizeMB=4096/g' /etc/waagent.conf
- 
- # Add localhost alias to ::1 IPv6
- sed -i 's/::1 ip6-localhost ip6-loopback/::1     localhost ip6-localhost ip6-loopback/g' /etc/hosts
-@@ -67,16 +67,16 @@ fi
+@@ -78,16 +78,16 @@ fi
  # ephemeral, so losing recent writes on an unclean shutdown is acceptable.
  # data= and journal_async_commit can only be set on the initial mount performed by the initramfs,
  # so they have to be passed through rootflags on the kernel command line rather than through fstab.
@@ -65,7 +52,7 @@ index 609d31ab..3dc7fc63 100644
  
  # Create symlink for tests running
  chmod +x $HELPER_SCRIPTS/invoke-tests.sh
-@@ -106,5 +106,5 @@ if is_ubuntu22; then
+@@ -132,5 +132,5 @@ if is_ubuntu22; then
  fi
  
  # Disable man-db auto update
@@ -74,7 +61,7 @@ index 609d31ab..3dc7fc63 100644
 +# echo "set man-db/auto-update false" | debconf-communicate
 +# dpkg-reconfigure man-db
 diff --git a/images/ubuntu/scripts/build/install-container-tools.sh b/images/ubuntu/scripts/build/install-container-tools.sh
-index ac9dcdff..fc23d9fc 100644
+index f2fad3a..4c99d7e 100644
 --- a/images/ubuntu/scripts/build/install-container-tools.sh
 +++ b/images/ubuntu/scripts/build/install-container-tools.sh
 @@ -35,4 +35,24 @@ if is_ubuntu26; then
@@ -103,7 +90,7 @@ index ac9dcdff..fc23d9fc 100644
 +
  invoke_tests "Tools" "Containers"
 diff --git a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
-index 5a500091..0c91d32f 100644
+index fbb8d3f..45c2e39 100644
 --- a/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 +++ b/images/ubuntu/scripts/build/install-dotnetcore-sdk.sh
 @@ -47,8 +47,8 @@ sdks=()
@@ -118,7 +105,7 @@ index 5a500091..0c91d32f 100644
  
  sorted_sdks=$(echo ${sdks[@]} | tr ' ' '\n' | sort -rV | awk -F'.' '!seen[$1"."$2"."int($3/100)]++' )
 diff --git a/images/ubuntu/scripts/build/install-homebrew.sh b/images/ubuntu/scripts/build/install-homebrew.sh
-index c8f2b682..1da414ab 100644
+index c8f2b68..c16db2d 100644
 --- a/images/ubuntu/scripts/build/install-homebrew.sh
 +++ b/images/ubuntu/scripts/build/install-homebrew.sh
 @@ -9,6 +9,8 @@
@@ -138,7 +125,7 @@ index c8f2b682..1da414ab 100644
 +sudo env HELPER_SCRIPTS="$HELPER_SCRIPTS" INSTALLER_SCRIPT_FOLDER="$INSTALLER_SCRIPT_FOLDER" invoke_tests "Tools" "Homebrew"
 +sudo rm -rf ${HOME}/.local
 diff --git a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1 b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
-index c138501b..c2c1b78a 100644
+index c94f5e3..f46bcc3 100644
 --- a/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 +++ b/images/ubuntu/scripts/docs-gen/Generate-SoftwareReport.ps1
 @@ -6,6 +6,8 @@ param (
@@ -151,10 +138,10 @@ index c138501b..c2c1b78a 100644
  $global:ErrorView = "NormalView"
  Set-StrictMode -Version Latest
 diff --git a/images/ubuntu/scripts/tests/Apt.Tests.ps1 b/images/ubuntu/scripts/tests/Apt.Tests.ps1
-index 16c1611e..58a25cdb 100644
+index 42925d7..59234b0 100644
 --- a/images/ubuntu/scripts/tests/Apt.Tests.ps1
 +++ b/images/ubuntu/scripts/tests/Apt.Tests.ps1
-@@ -47,7 +47,7 @@ Describe "Apt acquire configuration" {
+@@ -48,7 +48,7 @@ Describe "Apt acquire configuration" {
          (Get-CommandResult "apt-config dump APT::Acquire::Retries").Output | Should -BeNullOrEmpty
      }
  
@@ -164,7 +151,7 @@ index 16c1611e..58a25cdb 100644
          Get-Content $sourcesFile -Raw | Should -Match ([regex]::Escape("mirror+file:/etc/apt/apt-mirrors.txt"))
      }
 diff --git a/images/ubuntu/scripts/tests/System.Tests.ps1 b/images/ubuntu/scripts/tests/System.Tests.ps1
-index b25ed75f..c83c9044 100644
+index d802148..1c984b3 100644
 --- a/images/ubuntu/scripts/tests/System.Tests.ps1
 +++ b/images/ubuntu/scripts/tests/System.Tests.ps1
 @@ -6,7 +6,8 @@ Describe "Disk free space" -Skip:(-not [String]::IsNullOrEmpty($env:AGENT_NAME)
@@ -177,7 +164,7 @@ index b25ed75f..c83c9044 100644
      }
  }
  
-@@ -47,7 +48,10 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
+@@ -71,7 +72,10 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
          $content | Should -Match 'ATTR\{queue/read_ahead_kb\}="128"'
      }
  
@@ -189,7 +176,7 @@ index b25ed75f..c83c9044 100644
          $devices = Get-ChildItem "/sys/block/sd*/queue/read_ahead_kb", "/sys/block/nvme*n*/queue/read_ahead_kb" -ErrorAction SilentlyContinue
          $devices | Should -Not -BeNullOrEmpty -Because "there should be at least one sd* or nvme* block device"
          foreach ($dev in $devices) {
-@@ -46,7 +47,7 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
+@@ -81,7 +85,7 @@ Describe "ReadAhead udev rule" -Skip:(Test-IsUbuntu22) {
      }
  }
  
@@ -198,8 +185,19 @@ index b25ed75f..c83c9044 100644
      It "GRUB drop-in sets the root filesystem mount options" {
          $content = Get-Content "/etc/default/grub.d/99-runner-performance.cfg" -Raw
          $content | Should -Match "rootflags=nobarrier,data=writeback,journal_async_commit,commit=30"
+diff --git a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
+index d5f3c0b..a911ffc 100644
+--- a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_22_04"]
+   name = "ubuntu-22_04-arm64"
+ 
+   provisioner "shell" {
 diff --git a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
-index e306c9e7..e36675a4 100644
+index 39166e0..31310b7 100644
 --- a/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-22_04.pkr.hcl
 @@ -1,5 +1,11 @@
@@ -266,22 +264,24 @@ index e306c9e7..e36675a4 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests/"
-+  }
-+
-+  provisioner "file" {
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
++  }
++
++  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
 +    source      = "${path.root}/../../../helpers/software-report-base/"
    }
  
    provisioner "file" {
-@@ -163,6 +193,14 @@ build {
+@@ -161,6 +191,14 @@ build {
+     ]
+   }
  
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -294,8 +294,6 @@ index e306c9e7..e36675a4 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-     scripts          = ["${path.root}/../scripts/build/install-docker.sh"]
-   }
 @@ -173,6 +211,20 @@ build {
      scripts          = ["${path.root}/../scripts/build/Install-Toolset.ps1", "${path.root}/../scripts/build/Configure-Toolset.ps1"]
    }
@@ -363,11 +361,22 @@ index e306c9e7..e36675a4 100644
    }
 -
  }
+diff --git a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
+index 2a88f1f..c86865a 100644
+--- a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_24_04"]
+   name = "ubuntu-24_04-arm64"
+ 
+   provisioner "shell" {
 diff --git a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-index 781fcccf..c6cba67a 100644
+index 7a35fe4..493de73 100644
 --- a/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-24_04.pkr.hcl
-@@ -1,7 +1,24 @@
+@@ -1,6 +1,23 @@
 +source "lxd" "build_image_24_04" {
 +  image          = "ubuntu:noble"
 +  container_name = "packer-lxd"
@@ -375,10 +384,11 @@ index 781fcccf..c6cba67a 100644
 +}
 +
  build {
--  sources = ["source.azure-arm.image"]
+-  sources = var.cloud_provider == "aws" ? ["source.amazon-ebs.image"] : ["source.azure-arm.image"]
+-  name    = "ubuntu-24_04"
 +  sources = ["source.lxd.build_image_24_04"]
-   name = "ubuntu-24_04"
- 
++  name = "ubuntu-24_04"
++
 +  provisioner "shell" {
 +    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -389,10 +399,9 @@ index 781fcccf..c6cba67a 100644
 +      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
 +    ]
 +  }
-+
+ 
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
 @@ -9,7 +26,14 @@ build {
  
    provisioner "file" {
@@ -419,7 +428,7 @@ index 781fcccf..c6cba67a 100644
  
    provisioner "file" {
 -    destination = "${var.image_folder}"
--    sources     = [
+-    sources = [
 -      "${path.root}/../assets/post-gen",
 -      "${path.root}/../scripts/tests",
 -      "${path.root}/../scripts/docs-gen"
@@ -431,16 +440,16 @@ index 781fcccf..c6cba67a 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests/"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen/"
-+  }
-+
-+  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
 +    source      = "${path.root}/../../../helpers/software-report-base/"
    }
@@ -466,8 +475,10 @@ index 781fcccf..c6cba67a 100644
 +
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-     inline          = [
-@@ -154,10 +198,32 @@ provisioner "shell" {
+     inline = [
+@@ -152,12 +196,34 @@ build {
+     ]
+   }
  
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -500,7 +511,7 @@ index 781fcccf..c6cba67a 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -172,7 +238,7 @@ provisioner "shell" {
+@@ -172,7 +238,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -509,7 +520,7 @@ index 781fcccf..c6cba67a 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -201,16 +267,23 @@ provisioner "shell" {
+@@ -201,16 +267,23 @@ build {
    }
  
    provisioner "shell" {
@@ -537,20 +548,31 @@ index 781fcccf..c6cba67a 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -231,7 +304,7 @@ provisioner "shell" {
+@@ -231,7 +304,7 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
--    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+-    inline          = ["sleep 30", "if [ -x /usr/sbin/waagent ] && [ -f /etc/waagent.conf ]; then /usr/sbin/waagent -force -deprovision+user; fi && export HISTSIZE=0 && sync"]
 +    inline          = ["export HISTSIZE=0 && sync"]
    }
  
  }
+diff --git a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
+index 89d23d4..0a7362f 100644
+--- a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
++++ b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
+@@ -1,5 +1,5 @@
+ build {
+-  sources = ["source.azure-arm.image"]
++  sources = ["source.lxd.build_image_26_04"]
+   name = "ubuntu-26_04-arm64"
+ 
+   provisioner "shell" {
 diff --git a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl b/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
-index 501f9319..c062ec1b 100644
+index 841d2db..27bf9dd 100644
 --- a/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
 +++ b/images/ubuntu/templates/build.ubuntu-26_04.pkr.hcl
-@@ -1,7 +1,24 @@
+@@ -1,6 +1,23 @@
 +source "lxd" "build_image_26_04" {
 +  image          = "ubuntu:resolute"
 +  container_name = "packer-lxd"
@@ -558,10 +580,11 @@ index 501f9319..c062ec1b 100644
 +}
 +
  build {
--  sources = ["source.azure-arm.image"]
+-  sources = var.cloud_provider == "aws" ? ["source.amazon-ebs.image"] : ["source.azure-arm.image"]
+-  name    = "ubuntu-26_04"
 +  sources = ["source.lxd.build_image_26_04"]
-   name = "ubuntu-26_04"
- 
++  name = "ubuntu-26_04"
++
 +  provisioner "shell" {
 +    environment_vars = ["DEBIAN_FRONTEND=noninteractive"]
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -572,10 +595,9 @@ index 501f9319..c062ec1b 100644
 +      "echo 'runner ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers"
 +    ]
 +  }
-+
+ 
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-     inline          = ["mkdir ${var.image_folder}", "chmod 777 ${var.image_folder}"]
 @@ -9,7 +26,14 @@ build {
  
    provisioner "file" {
@@ -602,7 +624,7 @@ index 501f9319..c062ec1b 100644
  
    provisioner "file" {
 -    destination = "${var.image_folder}"
--    sources     = [
+-    sources = [
 -      "${path.root}/../assets/post-gen",
 -      "${path.root}/../scripts/tests",
 -      "${path.root}/../scripts/docs-gen"
@@ -614,16 +636,16 @@ index 501f9319..c062ec1b 100644
 +  provisioner "file" {
 +    destination = "/imagegeneration/tests"
 +    source      = "${path.root}/../scripts/tests/"
++  }
++
++  provisioner "file" {
++    destination = "/imagegeneration/docs-gen"
++    source      = "${path.root}/../scripts/docs-gen/"
    }
  
    provisioner "file" {
 -    destination = "${var.image_folder}/docs-gen/"
 -    source      = "${path.root}/../../../helpers/software-report-base"
-+    destination = "/imagegeneration/docs-gen"
-+    source      = "${path.root}/../scripts/docs-gen/"
-+  }
-+
-+  provisioner "file" {
 +    destination = "${var.image_folder}/docs-gen/software-report-base"
 +    source      = "${path.root}/../../../helpers/software-report-base/"
    }
@@ -642,8 +664,10 @@ index 501f9319..c062ec1b 100644
 +
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
-     inline          = [
-@@ -150,10 +187,25 @@ provisioner "shell" {
+     inline = [
+@@ -149,12 +186,27 @@ build {
+     ]
+   }
  
 +  provisioner "shell" {
 +    execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
@@ -669,7 +693,7 @@ index 501f9319..c062ec1b 100644
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
      execute_command  = "sudo sh -c '{{ .Vars }} pwsh -f {{ .Path }}'"
-@@ -168,7 +220,7 @@ provisioner "shell" {
+@@ -169,7 +221,7 @@ build {
  
    provisioner "shell" {
      environment_vars = ["HELPER_SCRIPTS=${var.helper_script_folder}", "DEBIAN_FRONTEND=noninteractive", "INSTALLER_SCRIPT_FOLDER=${var.installer_script_folder}"]
@@ -678,7 +702,7 @@ index 501f9319..c062ec1b 100644
      scripts          = ["${path.root}/../scripts/build/install-homebrew.sh"]
    }
  
-@@ -197,16 +249,23 @@ provisioner "shell" {
+@@ -198,16 +250,23 @@ build {
    }
  
    provisioner "shell" {
@@ -706,64 +730,31 @@ index 501f9319..c062ec1b 100644
    provisioner "file" {
      destination = "${path.root}/../software-report.json"
      direction   = "download"
-@@ -227,7 +286,7 @@ provisioner "shell" {
+@@ -228,7 +287,7 @@ build {
  
    provisioner "shell" {
      execute_command = "sudo sh -c '{{ .Vars }} {{ .Path }}'"
--    inline          = ["sleep 30", "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"]
+-    inline          = ["sleep 30", "if [ -x /usr/sbin/waagent ] && [ -f /etc/waagent.conf ]; then /usr/sbin/waagent -force -deprovision+user; fi && export HISTSIZE=0 && sync"]
 +    inline          = ["export HISTSIZE=0 && sync"]
    }
  
  }
-diff --git a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
-index d5f3c0bc..a911ffcb 100644
---- a/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
-+++ b/images/ubuntu/templates/build.ubuntu-22_04-arm64.pkr.hcl
-@@ -1,5 +1,5 @@
- build {
--  sources = ["source.azure-arm.image"]
-+  sources = ["source.lxd.build_image_22_04"]
-   name = "ubuntu-22_04-arm64"
- 
-   provisioner "shell" {
-diff --git a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
-index 2a88f1f3..c86865ac 100644
---- a/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
-+++ b/images/ubuntu/templates/build.ubuntu-24_04-arm64.pkr.hcl
-@@ -1,5 +1,5 @@
- build {
--  sources = ["source.azure-arm.image"]
-+  sources = ["source.lxd.build_image_24_04"]
-   name = "ubuntu-24_04-arm64"
- 
-   provisioner "shell" {
-diff --git a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
-index 159d3757..b370eced 100644
---- a/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
-+++ b/images/ubuntu/templates/build.ubuntu-26_04-arm64.pkr.hcl
-@@ -1,5 +1,5 @@
- build {
--  sources = ["source.azure-arm.image"]
-+  sources = ["source.lxd.build_image_26_04"]
-   name = "ubuntu-26_04-arm64"
- 
-   provisioner "shell" {
 diff --git a/images/ubuntu/templates/source.ubuntu.pkr.hcl b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-index babc3cb5..a0fc7d33 100644
+index e13c890..a0fc7d3 100644
 --- a/images/ubuntu/templates/source.ubuntu.pkr.hcl
 +++ b/images/ubuntu/templates/source.ubuntu.pkr.hcl
-@@ -1,50 +1,8 @@
+@@ -1,110 +1,8 @@
 -source "azure-arm" "image" {
--  client_cert_path                       = var.client_cert_path
--  client_id                              = var.client_id
--  client_jwt                             = var.client_jwt
--  client_secret                          = var.client_secret
--  object_id                              = var.object_id
--  oidc_request_token                     = var.oidc_request_token
--  oidc_request_url                       = var.oidc_request_url
--  subscription_id                        = var.subscription_id
--  tenant_id                              = var.tenant_id
--  use_azure_cli_auth                     = var.use_azure_cli_auth
+-  client_cert_path   = var.client_cert_path
+-  client_id          = var.client_id
+-  client_jwt         = var.client_jwt
+-  client_secret      = var.client_secret
+-  object_id          = var.object_id
+-  oidc_request_token = var.oidc_request_token
+-  oidc_request_url   = var.oidc_request_url
+-  subscription_id    = var.subscription_id
+-  tenant_id          = var.tenant_id
+-  use_azure_cli_auth = var.use_azure_cli_auth
 -
 -  allowed_inbound_ip_addresses           = var.allowed_inbound_ip_addresses
 -  build_resource_group_name              = var.build_resource_group_name
@@ -787,12 +778,12 @@ index babc3cb5..a0fc7d33 100644
 -  winrm_username                         = var.winrm_username
 -
 -  shared_image_gallery_destination {
--    subscription                         = var.subscription_id
--    gallery_name                         = var.gallery_name
--    resource_group                       = var.gallery_resource_group_name
--    image_name                           = var.gallery_image_name
--    image_version                        = var.gallery_image_version
--    storage_account_type                 = var.gallery_storage_account_type
+-    subscription         = var.subscription_id
+-    gallery_name         = var.gallery_name
+-    resource_group       = var.gallery_resource_group_name
+-    image_name           = var.gallery_image_name
+-    image_version        = var.gallery_image_version
+-    storage_account_type = var.gallery_storage_account_type
 -  }
 -
 -  dynamic "azure_tag" {
@@ -800,6 +791,60 @@ index babc3cb5..a0fc7d33 100644
 -    content {
 -      name  = azure_tag.key
 -      value = azure_tag.value
+-    }
+-  }
+-}
+-
+-source "amazon-ebs" "image" {
+-  ami_name                    = local.aws_ami_name
+-  associate_public_ip_address = true
+-  encrypt_boot                = false
+-  instance_type               = var.aws_instance_type
+-  region                      = var.aws_region
+-  ssh_clear_authorized_keys   = var.ssh_clear_authorized_keys
+-  ssh_interface               = "public_ip"
+-  ssh_username                = var.aws_ssh_username
+-
+-  aws_polling {
+-    delay_seconds = 15
+-    max_attempts  = 900
+-  }
+-
+-  source_ami_filter {
+-    filters = {
+-      architecture     = "x86_64"
+-      name             = local.aws_source_ami_name_filter
+-      root-device-type = "ebs"
+-    }
+-
+-    most_recent = true
+-    owners      = [var.aws_source_ami_owner]
+-  }
+-
+-  ami_description = "Runner image for ${var.image_os} built from runner-images templates"
+-
+-  tags = merge(
+-    {
+-      Name         = local.aws_ami_name
+-      ImageOS      = var.image_os
+-      ImageVersion = var.image_version
+-    },
+-    var.aws_ami_tags
+-  )
+-
+-  run_tags = {
+-    owner      = "runner-images-build"
+-    created_by = "packer"
+-  }
+-
+-  dynamic "launch_block_device_mappings" {
+-    for_each = local.os_disk_size_gb > 0 ? [1] : []
+-    content {
+-      device_name           = "/dev/sda1"
+-      volume_size           = local.os_disk_size_gb
+-      volume_type           = "gp3"
+-      encrypted             = false
+-      delete_on_termination = true
 +packer {
 +  required_plugins {
 +    lxd = {
@@ -807,186 +852,10 @@ index babc3cb5..a0fc7d33 100644
 +      version = "1.0.3"
      }
    }
+-
+-  vpc_id = var.aws_vpc_id != "" ? var.aws_vpc_id : null
+-
+-  subnet_id = var.aws_subnet_id != "" ? var.aws_subnet_id : null
+-
+-  security_group_id = var.aws_security_group_id != "" ? var.aws_security_group_id : null
  }
-diff --git a/images/ubuntu/templates/locals.ubuntu.pkr.hcl b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-index 0c62430a..e69de29b 100644
---- a/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-+++ b/images/ubuntu/templates/locals.ubuntu.pkr.hcl
-@@ -1,31 +0,0 @@
--locals {
--  image_properties_map = {
--      "ubuntu22" = {
--            source_image_marketplace_sku = "canonical:0001-com-ubuntu-server-jammy:22_04-lts-gen2"
--            os_disk_size_gb = 75
--      },
--      "ubuntu22-arm64" = {
--            source_image_marketplace_sku = "canonical:0001-com-ubuntu-server-jammy:22_04-lts-arm64"
--            os_disk_size_gb = 75
--      },
--      "ubuntu24" = {
--            source_image_marketplace_sku = "canonical:ubuntu-24_04-lts:server"
--            os_disk_size_gb = 75
--      },
--      "ubuntu24-arm64" = {
--            source_image_marketplace_sku = "canonical:ubuntu-24_04-lts:server-arm64"
--            os_disk_size_gb = 75
--      },
--      "ubuntu26" = {
--            source_image_marketplace_sku = "canonical:ubuntu-26_04-lts:server"
--            os_disk_size_gb = 75
--      },
--      "ubuntu26-arm64" = {
--            source_image_marketplace_sku = "canonical:ubuntu-26_04-lts:server-arm64"
--            os_disk_size_gb = 75
--      }
--  }
--
--  source_image_marketplace_sku = local.image_properties_map[var.image_os].source_image_marketplace_sku
--  os_disk_size_gb = coalesce(var.os_disk_size_gb, local.image_properties_map[var.image_os].os_disk_size_gb)
--}
-diff --git a/images/ubuntu/templates/variable.ubuntu.pkr.hcl b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-index 685c6604..af0b7d72 100644
---- a/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-+++ b/images/ubuntu/templates/variable.ubuntu.pkr.hcl
-@@ -1,141 +1,3 @@
--// Authentication related variables
--variable "client_cert_path" {
--  type    = string
--  default = "${env("ARM_CLIENT_CERT_PATH")}"
--}
--variable "client_id" {
--  type    = string
--  default = "${env("ARM_CLIENT_ID")}"
--}
--variable "client_jwt" {
--  type      = string
--  default   = "${env("ARM_CLIENT_JWT")}"
--  sensitive = true
--}
--variable "client_secret" {
--  type      = string
--  default   = "${env("ARM_CLIENT_SECRET")}"
--  sensitive = true
--}
--variable "object_id" {
--  type    = string
--  default = "${env("ARM_OBJECT_ID")}"
--}
--variable "oidc_request_token" {
--  type    = string
--  default = ""
--}
--variable "oidc_request_url" {
--  type    = string
--  default = ""
--}
--variable "subscription_id" {
--  type    = string
--  default = "${env("ARM_SUBSCRIPTION_ID")}"
--}
--variable "tenant_id" {
--  type    = string
--  default = "${env("ARM_TENANT_ID")}"
--}
--variable "use_azure_cli_auth" {
--  type    = bool
--  default = false
--}
--
--// Azure environment related variables
--variable "allowed_inbound_ip_addresses" {
--  type    = list(string)
--  default = []
--}
--variable "azure_tags" {
--  type    = map(string)
--  default = {}
--}
--variable "build_resource_group_name" {
--  type    = string
--  default = "${env("BUILD_RG_NAME")}"
--}
--variable "gallery_image_name" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_NAME")}"
--}
--variable "gallery_image_version" {
--  type    = string
--  default = "${env("GALLERY_IMAGE_VERSION")}"
--}
--variable "gallery_name" {
--  type    = string
--  default = "${env("GALLERY_NAME")}"
--}
--variable "gallery_resource_group_name" {
--  type    = string
--  default = "${env("GALLERY_RG_NAME")}"
--}
--variable "gallery_storage_account_type" {
--  type    = string
--  default = "${env("GALLERY_STORAGE_ACCOUNT_TYPE")}"
--}
--variable "image_os_type" {
--  type    = string
--  default = "Linux"
--}
--variable "location" {
--  type    = string
--  default = ""
--}
--variable "managed_image_name" {
--  type    = string
--  default = ""
--}
--variable "managed_image_resource_group_name" {
--  type    = string
--  default = "${env("ARM_RESOURCE_GROUP")}"
--}
--variable "managed_image_storage_account_type" {
--  type    = string
--  default = "Premium_LRS"
--}
--variable "private_virtual_network_with_public_ip" {
--  type    = bool
--  default = false
--}
--variable "os_disk_size_gb" {
--  type    = number
--  default = null
--}
--variable "source_image_version" {
--  type    = string
--  default = "latest"
--}
--variable "ssh_clear_authorized_keys" {
--  type    = bool
--  default = true
--}
--variable "temp_resource_group_name" {
--  type    = string
--  default = "${env("TEMP_RESOURCE_GROUP_NAME")}"
--}
--variable "virtual_network_name" {
--  type    = string
--  default = "${env("VNET_NAME")}"
--}
--variable "virtual_network_resource_group_name" {
--  type    = string
--  default = "${env("VNET_RESOURCE_GROUP")}"
--}
--variable "virtual_network_subnet_name" {
--  type    = string
--  default = "${env("VNET_SUBNET")}"
--}
--variable "vm_size" {
--  type    = string
--  default = "Standard_D4s_v4"
--}
--variable "winrm_username" {         // The username used to connect to the VM via WinRM
--    type    = string                // Also applies to the username used to create the VM
--    default = "packer"
--}
--
- // Image related variables
- variable "helper_script_folder" {
-   type    = string
